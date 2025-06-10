@@ -1,0 +1,21 @@
+<div class="container">
+    <form name="SemanticForm" [semanticValidator]="semanticValidator" #tplForm="ngForm">
+        <div class="mb-3">
+            <label for="password-field" class="form-label">Password</label>
+            <input
+                type="password" class="form-control" id="password-field"
+                name="password" ngModel
+            >
+            <ngx-validation-field-error for="password"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="password-confirm-field" class="form-label">Confirm password</label>
+            <input
+                type="password" class="form-control" id="password-confirm-field"
+                name="passwordConfirmation" ngModel
+            >
+            <ngx-validation-field-error for="passwordConfirmation"></ngx-validation-field-error>
+        </div>
+        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
+    </form>
+</div>

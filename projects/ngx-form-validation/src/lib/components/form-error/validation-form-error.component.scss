@@ -1,0 +1,23 @@
+:host {
+    display: block;
+    position: relative;
+
+    color: var(--ngx-validation-form-error-color, #58151c);
+    background-color: var(--ngx-validation-form-error-bg, #f8d7da);
+    border: var(--ngx-validation-form-error-border, #f1aeb5);
+    border-radius: var(--ngx-validation-form-error-border-radius, 0.375rem);
+    padding: var(--ngx-validation-form-error-padding-y, 1rem) var(--ngx-validation-form-error-padding-x, 1rem);
+}
+
+:host:not([data-state-visible]) {
+    display: none;
+}
+
+// Headings for larger alerts
+h4 {
+    color: inherit;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}

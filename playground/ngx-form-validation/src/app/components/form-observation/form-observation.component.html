@@ -1,0 +1,30 @@
+<div class="container">
+    <form name="FormObservation" #tplForm="ngForm">
+        <ngx-validation-form-error heading="Oops, something went wrong." class="mb-4"></ngx-validation-form-error>
+        <div class="mb-3">
+            <label for="first-field" class="form-label">First</label>
+            <input
+                type="text" class="form-control" id="first-field"
+                name="first" ngModel
+            >
+            <ngx-validation-field-error for="first"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="second-field" class="form-label">Second</label>
+            <input
+                type="text" class="form-control" id="second-field"
+                name="second" ngModel
+            >
+            <ngx-validation-field-error for="second"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="third-field" class="form-label">Third</label>
+            <input
+                type="text" class="form-control" id="third-field"
+                name="third" ngModel
+            >
+            <ngx-validation-field-error for="third"></ngx-validation-field-error>
+        </div>
+        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.disabled || (tplForm.submitted && tplForm.invalid)">Submit</button>
+    </form>
+</div>

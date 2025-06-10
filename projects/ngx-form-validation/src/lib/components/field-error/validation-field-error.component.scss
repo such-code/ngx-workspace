@@ -1,0 +1,16 @@
+:host {
+    position: relative;
+    display: block;
+}
+
+:host:not([data-state-visible]) {
+    display: none;
+}
+
+div {
+    margin: var(--ngx-validation-field-error-margin, 0);
+    padding: var(--ngx-validation-field-error-margin, 0);
+
+    font-size: var(--ngx-validation-field-error-font-size, .875em);
+    color: var(--ngx-validation-field-error-color, #dc3545);
+}

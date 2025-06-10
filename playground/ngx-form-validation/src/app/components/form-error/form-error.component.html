@@ -1,0 +1,20 @@
+<div class="container">
+    <form name="FormError">
+        <ngx-validation-form-error heading="Oops, something went wrong." class="mb-4"></ngx-validation-form-error>
+        <div class="mb-3">
+            <label for="first-field" class="form-label">First</label>
+            <input
+                type="text" class="form-control" id="first-field"
+                name="first" ngModel
+            >
+        </div>
+        <div class="mb-3">
+            <label for="second-field" class="form-label">Second</label>
+            <input
+                type="text" class="form-control" id="second-field"
+                name="second" ngModel
+            >
+        </div>
+        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)">Submit</button>
+    </form>
+</div>

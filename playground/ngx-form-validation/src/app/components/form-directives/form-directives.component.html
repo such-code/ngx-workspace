@@ -1,0 +1,61 @@
+<div class="container">
+    <form name="DirectivesForm" #tplForm="ngForm">
+        <div class="mb-3">
+            <label for="allowed-value-field" class="form-label">First</label>
+            <input
+                type="text" class="form-control" id="allowed-value-field"
+                name="allowed" ngModel
+                [allowedValue]="['one', 'two', 'three']"
+            >
+            <div class="form-text">
+                Text representation of any digit from 1 to 3.
+            </div>
+            <ngx-validation-field-error for="allowed"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="external-field" class="form-label">Second</label>
+            <input
+                type="text" class="form-control" id="external-field"
+                name="external" ngModel
+                [externalValidator]="externalValidator"
+            >
+            <div class="form-text">
+                Reversed text of the first field value.
+            </div>
+            <ngx-validation-field-error for="external"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="max-field" class="form-label">Third</label>
+            <input
+                type="number" class="form-control" id="max-field"
+                name="max" ngModel
+                [max]="10"
+            >
+            <div class="form-text">
+                Any number lower or equal than 10.
+            </div>
+            <ngx-validation-field-error for="max"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="min-field" class="form-label">Forth</label>
+            <input
+                type="number" class="form-control" id="min-field"
+                name="min" ngModel
+                [min]="0"
+            >
+            <div class="form-text">
+                Any number greater or equal than 0.
+            </div>
+            <ngx-validation-field-error for="min"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="required-field" class="form-label">Fifth*</label>
+            <input
+                type="text" class="form-control" id="required-field"
+                name="required" ngModel isRequired
+            >
+            <ngx-validation-field-error for="required"></ngx-validation-field-error>
+        </div>
+        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
+    </form>
+</div>

@@ -1,0 +1,10 @@
+@if (!!heading()) {
+    <h4>{{ heading() }}</h4>
+}
+@let errors = errors$ | async;
+@for (error of errors; track error.message; let isLast = $last) {
+    <p>{{ error.message }}</p>
+    @if (!isLast) {
+        <hr>
+    }
+}
