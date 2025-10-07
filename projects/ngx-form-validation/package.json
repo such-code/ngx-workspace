@@ -1,6 +1,6 @@
 {
     "name": "@such-code/ngx-form-validation",
-    "version": "19.0.0",
+    "version": "20.0.0",
     "license": "MIT",
     "description": "Template-driven form validation for Angular.",
     "author": "Erik Podrez<erya14@gmail.com>",
@@ -9,8 +9,8 @@
         "url": "git+https://github.com/such-code/ngx-workspace"
     },
     "peerDependencies": {
-        "@angular/common": "^19.2.0",
-        "@angular/core": "^19.2.0"
+        "@angular/common": "^20.0.3",
+        "@angular/core": "^20.0.3"
     },
     "dependencies": {
         "tslib": "^2.3.0"
