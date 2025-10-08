@@ -1,5 +1,5 @@
 import {Directive, inject, Inject, InjectionToken, input, Optional, Provider} from '@angular/core';
-import {NgForm} from '@angular/forms';
+import {ControlContainer, FormGroupDirective, NgForm} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
 import {catchError, distinctUntilChanged, map, skip, startWith, switchMap} from 'rxjs/operators';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
@@ -16,11 +16,11 @@ export const formDisabledSourceProvider: Provider = {
 
 @Directive({
     // tslint:disable-next-line:directive-selector
-    selector: 'form:not([ngNoForm]):not([formGroup]),ngForm,[ngForm]',
+    selector: 'form:not([ngNoForm]),ngForm,[ngForm],[formGroup]',
 })
 export class FormDisabledDirective {
 
-    protected readonly ngForm = inject(NgForm, {self: true});
+    protected readonly ngForm = inject(ControlContainer, {self: true}) as NgForm | FormGroupDirective;
 
     public readonly source = input<Observable<Observable<any>> | null>(null);
 

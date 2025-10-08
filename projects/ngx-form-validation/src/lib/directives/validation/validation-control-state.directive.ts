@@ -1,7 +1,17 @@
-import {AfterViewInit, DestroyRef, Directive, DoCheck, ElementRef, inject, Renderer2, signal} from '@angular/core';
-import {combineLatest, distinctUntilChanged, Observable} from 'rxjs';
+import {
+    AfterViewInit,
+    DestroyRef,
+    Directive,
+    DoCheck,
+    ElementRef,
+    inject, Injector,
+    OnInit,
+    Renderer2,
+    signal,
+} from '@angular/core';
+import {BehaviorSubject, combineLatest, distinctUntilChanged, Observable, of, tap} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
-import {NgControl, NgForm} from '@angular/forms';
+import {ControlContainer, FormGroupDirective, NgControl, NgForm} from '@angular/forms';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 
 export enum ControlStatus {
@@ -13,7 +23,7 @@ export enum ControlStatus {
 
 @Directive({
     standalone: true,
-    selector: '[ngModel][name]:not([formControlName]):not([formControl])',
+    selector: '[ngModel][name],[formControlName],[formControl]',
 })
 export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
 
@@ -22,43 +32,33 @@ export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
     public static readonly ATTRIBUTE_INVALID = 'data-state-invalid';
     public static readonly ATTRIBUTE_VALID = 'data-state-valid';
 
+    protected readonly injector = inject(Injector);
     protected readonly destroyRef = inject(DestroyRef);
-    protected readonly ngForm = inject(NgForm, {host: true, optional: true});
+    protected readonly controlContainer = inject(ControlContainer, {host: true, optional: true}) as NgForm | FormGroupDirective;
     protected readonly ngControl = inject(NgControl, {self: true});
     protected readonly elementRef = inject(ElementRef);
     protected readonly renderer = inject(Renderer2);
 
     // Form control state
-    protected readonly submitted = signal<boolean>(this.ngForm ? this.ngForm!.submitted : false);
     protected readonly dirty = signal<boolean>(!!this.ngControl.dirty);
+    protected readonly invalid = signal<boolean>(!!this.ngControl.invalid);
+    protected readonly submitted = signal<boolean>(this.controlContainer ? this.controlContainer!.submitted : false);
 
-    // Computed hidden state!
-    protected readonly invalid$: Observable<boolean>;
-    protected readonly visible$: Observable<boolean>;
-
-    public constructor() {
-        this.invalid$ = this.ngControl.statusChanges!.pipe(
-            map($ => $ === ControlStatus.INVALID),
-            startWith(this.ngControl.status === ControlStatus.INVALID),
-            distinctUntilChanged(),
-        );
-
-        this.visible$ = combineLatest([
-            this.invalid$,
-            toObservable(this.dirty),
-            toObservable(this.submitted),
+    public ngAfterViewInit() {
+        const invalid$ = toObservable(this.invalid, {injector: this.injector});
+        const visible$ = combineLatest([
+            invalid$,
+            toObservable(this.dirty, {injector: this.injector}),
+            toObservable(this.submitted, {injector: this.injector}),
         ]).pipe(
             map(([$invalid, $dirty, $submitted]): boolean => {
                 return $invalid && ($dirty || $submitted);
             }),
             startWith(false),
             distinctUntilChanged(),
-        )
-        ;
-    }
+        );
 
-    public ngAfterViewInit() {
-        this.visible$.pipe(
+        visible$.pipe(
             takeUntilDestroyed(this.destroyRef),
         ).subscribe($ => {
             if ($) {
@@ -68,7 +68,7 @@ export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
             }
         });
 
-        this.invalid$.pipe(
+        invalid$.pipe(
             takeUntilDestroyed(this.destroyRef),
         ).subscribe($ => {
             if ($) {
@@ -82,9 +82,10 @@ export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
     }
 
     public ngDoCheck(): void {
-        if (this.ngForm) {
-            this.submitted.set(this.ngForm.submitted);
+        if (this.controlContainer) {
+            this.submitted.set(this.controlContainer.submitted);
         }
+        this.invalid.set(!!this.ngControl.invalid);
         this.dirty.set(!!this.ngControl.dirty);
     }
 }

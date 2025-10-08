@@ -1,5 +1,5 @@
 import {Directive, ElementRef, inject, OnDestroy, OutputEmitterRef} from '@angular/core';
-import {AbstractControl, FormGroup, NgForm} from '@angular/forms';
+import {AbstractControl, ControlContainer, FormGroup, FormGroupDirective, NgForm} from '@angular/forms';
 import {ERROR_COLLECTOR_SOURCE} from '../../data/error-collection';
 import {ValidationRuleError} from '../../rules/rules';
 import {VALIDATION_CONTEXT_REFLECTION} from '../context/validation-named-context-base.directive';
@@ -47,14 +47,15 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
     protected readonly errorCollection = inject(ERROR_COLLECTOR_SOURCE, {skipSelf: true, optional: true});
     protected readonly reflectedContext = inject(VALIDATION_CONTEXT_REFLECTION, {skipSelf: true, optional: true});
     protected readonly localContext = inject(VALIDATION_CONTEXT_LOCAL, {skipSelf: true, optional: true});
-    protected readonly ngForm = inject(NgForm);
+
+    protected readonly controlContainer = inject(ControlContainer) as NgForm | FormGroupDirective;
 
     public abstract readonly onValid: OutputEmitterRef<ValidationSubmitEvent>;
     public abstract readonly onInvalid: OutputEmitterRef<ValidationSubmitEvent>;
     public abstract readonly onValidated: OutputEmitterRef<ValidationSubmitEvent>;
 
     public constructor() {
-        if (this.ngForm) {
+        if (this.controlContainer) {
             this.handleClick = this.handleClick.bind(this);
             this.element.nativeElement.addEventListener('click', this.handleClick);
         }
@@ -63,7 +64,7 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
     protected abstract performSubmit(): void;
 
     protected handleClick($event: PointerEvent): void {
-        if (this.ngForm.enabled) {
+        if (this.controlContainer.enabled) {
             // Trigger form validation.
             this.performSubmit();
 
@@ -76,11 +77,11 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
             }
 
             let event: ValidationSubmitEvent;
-            if (this.ngForm.valid) {
+            if (this.controlContainer.valid) {
                 event = new ValidationSubmitEvent(
                     ValidationSubmitEventType.VALID,
                     this.element.nativeElement,
-                    this.ngForm.value,
+                    this.controlContainer.value,
                     this.reflectedContext,
                     this.localContext,
                     this.errorCollection,
@@ -90,11 +91,11 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
                 event = new ValidationSubmitEvent(
                     ValidationSubmitEventType.INVALID,
                     this.element.nativeElement,
-                    this.ngForm.value,
+                    this.controlContainer.value,
                     this.reflectedContext,
                     this.localContext,
                     this.errorCollection,
-                    ValidationCheckBaseDirective.extractErrorFromControl(this.ngForm.form),
+                    ValidationCheckBaseDirective.extractErrorFromControl(this.controlContainer.form),
                 );
                 this.onInvalid.emit(event);
             }

@@ -11,12 +11,13 @@ export * from './lib/data/error-collection';
 export * from './lib/data/validation-context';
 
 export * from './lib/directives/check/validation-submit-event';
-export * from './lib/directives/check/validation-check-continue.directive';
 export * from './lib/directives/check/validation-check-submit.directive';
 export * from './lib/directives/context/validation-local-context.directive';
 export * from './lib/directives/context/validation-named-context.directive';
 export * from './lib/directives/context/validation-named-form-context.directive';
 export * from './lib/directives/context/validation-semantic-context.directive';
+export * from './lib/directives/item/validation-control.directive';
+export * from './lib/directives/item/validation-control-name.directive';
 export * from './lib/directives/item/validation-group.directive';
 export * from './lib/directives/item/validation-model.directive';
 export * from './lib/directives/utils/form-disabled.directive';

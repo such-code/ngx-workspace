@@ -1,0 +1,30 @@
+<div class="container">
+    <form name="ReactiveForm" [formGroup]="form" #tplForm="ngForm">
+        <div class="mb-3">
+            <label for="first-field" class="form-label">First</label>
+            <input
+                type="text" class="form-control" id="first-field"
+                name="first"
+                [formControl]="form.controls.first"
+            >
+            <ngx-validation-field-error for="first"></ngx-validation-field-error>
+        </div>
+        <div class="mb-3">
+            <label for="second-field" class="form-label">Second</label>
+            <input
+                type="text" class="form-control" id="second-field"
+                name="second"
+                formControlName="second"
+            >
+            <ngx-validation-field-error for="second"></ngx-validation-field-error>
+        </div>
+        <button
+            type="submit"
+            class="btn btn-primary"
+            (onValid)="handleSubmit($event)"
+            [disabled]="tplForm.submitted && tplForm.invalid"
+        >
+            Submit
+        </button>
+    </form>
+</div>

@@ -6,29 +6,28 @@ import {Observable} from 'rxjs';
 
 @Directive({
     // tslint:disable-next-line:directive-selector
-    selector: '[ngModelGroup]',
+    selector: '[formControlName]',
     exportAs: 'validationItem',
     providers: [
         {
             provide: NG_VALIDATORS,
-            useExisting: ValidationGroupDirective,
+            useExisting: ValidationControlNameDirective,
             multi: true,
         },
     ],
 })
-export class ValidationGroupDirective extends ValidationItemBaseDirective implements Validator {
+export class ValidationControlNameDirective extends ValidationItemBaseDirective implements Validator {
 
-    public readonly name = input<string | null>(null, {alias: 'ngModelGroup'});
+    public readonly name = input<string | null>(null, {alias: 'formControlName'});
 
     // Since there is an issue for ngModelGroup with not calling registerOnValidatorChange to register changes.
     // Workaround should be used.
     protected lastValidatedControl: AbstractControl | null = null;
 
-    private _name$: Observable<string | null>;
+    private readonly _name$: Observable<string | null>;
 
     constructor() {
         super();
-
         this._name$ = toObservable(this.name);
     }
 
