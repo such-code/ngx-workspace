@@ -13,7 +13,7 @@ export abstract class ValidationItemBaseDirective implements Validator, OnInit {
     public readonly skipValidation = input<boolean>(false);
     public readonly skipRules = input<Array<string> | null>(null);
 
-    protected readonly controlContainer: ControlContainer | null = inject(ControlContainer, {optional: true});
+    protected readonly controlContainer: ControlContainer | null = inject(ControlContainer, {optional: true, skipSelf: true});
     protected readonly defaultSkipRules: Array<string> | null = inject(VALIDATION_SKIP_DEFAULT_RULES, {
         skipSelf: true,
         optional: true,
