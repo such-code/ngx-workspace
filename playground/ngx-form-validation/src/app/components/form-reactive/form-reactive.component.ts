@@ -1,5 +1,5 @@
 import {Component, inject} from '@angular/core';
-import {FormBuilder, FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {
     MaxLengthRule,
     MinLengthRule,
@@ -42,9 +42,10 @@ type FormType = {
             "ReactiveForm": {
                 first: [new RequiredRule(), new MinLengthRule(8)],
                 second: [new MaxLengthRule(3)],
+                'third.thirdFirst': [new RequiredRule()],
             },
         }),
-    ]
+    ],
 })
 export class FormReactiveComponent {
 
@@ -53,6 +54,9 @@ export class FormReactiveComponent {
     public readonly form = this.formBuilder.group({
         first: new FormControl(null),
         second: new FormControl(null),
+        third: new FormGroup({
+            thirdFirst: new FormControl(null),
+        }),
     });
 
     public handleSubmit($event: ValidationSubmitEvent<FormType>): void {

@@ -14,7 +14,7 @@ export class ValidationCheckSubmitDirective extends ValidationCheckBaseDirective
 
     protected performSubmit(): void {
         // This submit-event is required to update all ngModels and validate the form.
-        this.controlContainer.onSubmit(new CustomEvent('submit'));
+        this.form!.onSubmit(new CustomEvent('submit'));
         // In this scenario, fields are not marked as dirty since it is not required.
     }
 }

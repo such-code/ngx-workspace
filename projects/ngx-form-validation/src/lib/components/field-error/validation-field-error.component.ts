@@ -1,7 +1,6 @@
 import {
     Attribute,
     ChangeDetectionStrategy,
-    ChangeDetectorRef,
     Component,
     DestroyRef,
     DoCheck,
@@ -12,12 +11,13 @@ import {
     OnInit,
     Renderer2,
 } from '@angular/core';
-import {ControlContainer, FormControl, FormGroup, FormGroupDirective, NgForm, ValidationErrors} from '@angular/forms';
+import {ControlContainer, FormControl, FormGroup, ValidationErrors} from '@angular/forms';
 import {combineLatest, distinctUntilChanged, merge, Observable, of, Subject, switchMap} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
 import {AsyncPipe, KeyValuePipe} from '@angular/common';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {ValidationErrorPipe} from '../../pipes/validation-error.pipe';
+import {FormLikeDirective, isFormLikeDirective} from '../../util/ng-utils';
 
 @Component({
     standalone: true,
@@ -38,10 +38,8 @@ export class ValidationFieldErrorComponent implements DoCheck, OnInit, OnDestroy
 
     public readonly errors$: Observable<ValidationErrors | null>;
 
-    protected readonly changeDetectorRef = inject(ChangeDetectorRef);
     protected readonly destroyRef = inject(DestroyRef);
     protected readonly elementRef = inject(ElementRef);
-    protected readonly controlContainer = inject(ControlContainer, {host: true, optional: true}) as NgForm | FormGroupDirective;
     protected readonly parentControlContainer = inject(ControlContainer, {host: true, skipSelf: true});
     protected readonly renderer = inject(Renderer2);
 
@@ -64,10 +62,10 @@ export class ValidationFieldErrorComponent implements DoCheck, OnInit, OnDestroy
         }
 
         // Since the form does not emit anything when is reset, this is the only way how to implement submitted state.
-        this.submitted$ = this.controlContainer
-            ? this.controlContainer.ngSubmit.pipe(
-                map(() => this.controlContainer!.submitted),
-                startWith(this.controlContainer!.submitted),
+        this.submitted$ = this.parentControlContainer && isFormLikeDirective(this.parentControlContainer.formDirective)
+            ? this.parentControlContainer.formDirective.ngSubmit.pipe(
+                map(() => (this.parentControlContainer.formDirective as FormLikeDirective).submitted),
+                startWith(this.parentControlContainer.formDirective!.submitted),
             )
             : of(false);
 

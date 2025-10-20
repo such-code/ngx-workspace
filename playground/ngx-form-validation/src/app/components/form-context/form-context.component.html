@@ -24,21 +24,23 @@
             >
             <ngx-validation-field-error for="third"></ngx-validation-field-error>
         </div>
-        <div class="mb-3">
-            <label for="forth-field" class="form-label">Forth</label>
-            <input
-                type="text" class="form-control" id="forth-field"
-                name="forth" ngModel
-            >
-            <ngx-validation-field-error for="forth"></ngx-validation-field-error>
-        </div>
-        <div class="mb-3">
-            <label for="fifth-field" class="form-label">Fifth</label>
-            <input
-                type="text" class="form-control" id="fifth-field"
-                name="fifth" ngModel
-            >
-            <ngx-validation-field-error for="fifth"></ngx-validation-field-error>
+        <div ngModelGroup="group">
+            <div class="mb-3">
+                <label for="forth-field" class="form-label">Forth</label>
+                <input
+                    type="text" class="form-control" id="forth-field"
+                    name="forth" ngModel
+                >
+                <ngx-validation-field-error for="forth"></ngx-validation-field-error>
+            </div>
+            <div class="mb-3">
+                <label for="fifth-field" class="form-label">Fifth</label>
+                <input
+                    type="text" class="form-control" id="fifth-field"
+                    name="fifth" ngModel
+                >
+                <ngx-validation-field-error for="fifth"></ngx-validation-field-error>
+            </div>
         </div>
         <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
     </form>

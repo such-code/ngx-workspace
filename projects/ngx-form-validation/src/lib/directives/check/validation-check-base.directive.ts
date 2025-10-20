@@ -1,10 +1,11 @@
 import {Directive, ElementRef, inject, OnDestroy, OutputEmitterRef} from '@angular/core';
-import {AbstractControl, ControlContainer, FormGroup, FormGroupDirective, NgForm} from '@angular/forms';
+import {AbstractControl, ControlContainer, FormGroup} from '@angular/forms';
 import {ERROR_COLLECTOR_SOURCE} from '../../data/error-collection';
 import {ValidationRuleError} from '../../rules/rules';
 import {VALIDATION_CONTEXT_REFLECTION} from '../context/validation-named-context-base.directive';
 import {VALIDATION_CONTEXT_LOCAL} from '../context/validation-local-context.directive';
 import {ValidationSubmitEvent, ValidationSubmitEventType} from './validation-submit-event';
+import {FormLikeDirective, isFormLikeDirective} from '../../util/ng-utils';
 
 export type ValidationCheckFieldErrors = Record<string, ValidationRuleError>;
 export type ValidationCheckGroupErrors = {
@@ -48,16 +49,21 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
     protected readonly reflectedContext = inject(VALIDATION_CONTEXT_REFLECTION, {skipSelf: true, optional: true});
     protected readonly localContext = inject(VALIDATION_CONTEXT_LOCAL, {skipSelf: true, optional: true});
 
-    protected readonly controlContainer = inject(ControlContainer) as NgForm | FormGroupDirective;
+    protected readonly controlContainer = inject(ControlContainer);
+
+    protected readonly form: FormLikeDirective | null;
 
     public abstract readonly onValid: OutputEmitterRef<ValidationSubmitEvent>;
     public abstract readonly onInvalid: OutputEmitterRef<ValidationSubmitEvent>;
     public abstract readonly onValidated: OutputEmitterRef<ValidationSubmitEvent>;
 
     public constructor() {
-        if (this.controlContainer) {
+        if (this.controlContainer && isFormLikeDirective(this.controlContainer.formDirective)) {
             this.handleClick = this.handleClick.bind(this);
             this.element.nativeElement.addEventListener('click', this.handleClick);
+            this.form = this.controlContainer.formDirective;
+        } else {
+            this.form = null;
         }
     }
 
@@ -95,7 +101,7 @@ export abstract class ValidationCheckBaseDirective implements OnDestroy {
                     this.reflectedContext,
                     this.localContext,
                     this.errorCollection,
-                    ValidationCheckBaseDirective.extractErrorFromControl(this.controlContainer.form),
+                    ValidationCheckBaseDirective.extractErrorFromControl(this.form!.control),
                 );
                 this.onInvalid.emit(event);
             }

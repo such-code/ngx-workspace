@@ -4,15 +4,16 @@ import {
     Directive,
     DoCheck,
     ElementRef,
-    inject, Injector,
-    OnInit,
+    inject,
+    Injector,
     Renderer2,
     signal,
 } from '@angular/core';
-import {BehaviorSubject, combineLatest, distinctUntilChanged, Observable, of, tap} from 'rxjs';
+import {combineLatest, distinctUntilChanged} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
-import {ControlContainer, FormGroupDirective, NgControl, NgForm} from '@angular/forms';
+import {ControlContainer, NgControl} from '@angular/forms';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
+import {FormLikeDirective, isFormLikeDirective} from '../../util/ng-utils';
 
 export enum ControlStatus {
     VALID = 'VALID',
@@ -34,15 +35,25 @@ export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
 
     protected readonly injector = inject(Injector);
     protected readonly destroyRef = inject(DestroyRef);
-    protected readonly controlContainer = inject(ControlContainer, {host: true, optional: true}) as NgForm | FormGroupDirective;
+    protected readonly controlContainer = inject(ControlContainer, {host: true, optional: true});
     protected readonly ngControl = inject(NgControl, {self: true});
     protected readonly elementRef = inject(ElementRef);
     protected readonly renderer = inject(Renderer2);
 
+    protected readonly form: FormLikeDirective | null;
+
     // Form control state
     protected readonly dirty = signal<boolean>(!!this.ngControl.dirty);
     protected readonly invalid = signal<boolean>(!!this.ngControl.invalid);
-    protected readonly submitted = signal<boolean>(this.controlContainer ? this.controlContainer!.submitted : false);
+    protected readonly submitted = signal<boolean>(this.controlContainer && isFormLikeDirective(this.controlContainer.formDirective) ? this.controlContainer.formDirective.submitted : false);
+
+    public constructor() {
+        if (this.controlContainer && isFormLikeDirective(this.controlContainer.formDirective)) {
+            this.form = this.controlContainer.formDirective;
+        } else {
+            this.form = null;
+        }
+    }
 
     public ngAfterViewInit() {
         const invalid$ = toObservable(this.invalid, {injector: this.injector});
@@ -82,8 +93,8 @@ export class ValidationControlStateDirective implements AfterViewInit, DoCheck {
     }
 
     public ngDoCheck(): void {
-        if (this.controlContainer) {
-            this.submitted.set(this.controlContainer.submitted);
+        if (this.form) {
+            this.submitted.set(this.form.submitted);
         }
         this.invalid.set(!!this.ngControl.invalid);
         this.dirty.set(!!this.ngControl.dirty);

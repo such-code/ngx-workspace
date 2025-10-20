@@ -18,6 +18,15 @@
             >
             <ngx-validation-field-error for="second"></ngx-validation-field-error>
         </div>
+        <div class="mb-3" formGroupName="third">
+            <label for="third-field" class="form-label">Third</label>
+            <input
+                type="text" class="form-control" id="third-field"
+                name="third"
+                formControlName="thirdFirst"
+            >
+            <ngx-validation-field-error for="thirdFirst"></ngx-validation-field-error>
+        </div>
         <button
             type="submit"
             class="btn btn-primary"
