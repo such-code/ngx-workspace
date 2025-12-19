@@ -16,6 +16,26 @@
             >
             <ngx-validation-field-error for="passwordConfirmation"></ngx-validation-field-error>
         </div>
+        <fieldset ngModelGroup="user" [semanticValidator]="userSemanticValidator">
+            <legend>User info</legend>
+            <div class="mb-3">
+                <label for="name-field" class="form-label">Name</label>
+                <input
+                    type="text" class="form-control" id="name-field"
+                    name="name" ngModel
+                >
+                <p class="form-text">User name can be anything except "Wrong"</p>
+                <ngx-validation-field-error for="name"></ngx-validation-field-error>
+            </div>
+            <div class="mb-3">
+                <label for="surname-field" class="form-label">Surname</label>
+                <input
+                    type="text" class="form-control" id="surname-field"
+                    name="surname" ngModel
+                >
+                <ngx-validation-field-error for="surname"></ngx-validation-field-error>
+            </div>
+        </fieldset>
         <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
     </form>
 </div>

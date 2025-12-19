@@ -3,7 +3,7 @@ import {AbstractControl, ControlContainer, ValidationErrors, Validator} from '@a
 import {combineLatest, Observable, of} from 'rxjs';
 import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {ValidationRule} from '../../rules/rules';
-import {VALIDATION_CONTEXTS, ValidationContext} from '../../data/validation-context';
+import {collectAllValidationContexts, ValidationContext} from '../../data/validation-context';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {VALIDATION_SKIP_DEFAULT_RULES} from '../../types';
 
@@ -20,7 +20,9 @@ export abstract class ValidationItemBaseDirective implements Validator, OnInit {
     });
     protected readonly destroyRef = inject(DestroyRef);
     protected readonly injector = inject(Injector);
-    protected readonly validationContexts: Array<ValidationContext> = inject(VALIDATION_CONTEXTS, {skipSelf: true});
+
+    // Collect all validation contexts from the entire injector hierarchy
+    protected readonly validationContexts: Array<ValidationContext> = collectAllValidationContexts(this.injector);
 
     protected readonly rules = signal<ReadonlyArray<ValidationRule> | null>(null);
 

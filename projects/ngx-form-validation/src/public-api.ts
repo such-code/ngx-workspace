@@ -16,7 +16,11 @@ export * from './lib/directives/context/validation-local-context.directive';
 export * from './lib/directives/context/validation-named-context.directive';
 export * from './lib/directives/context/validation-named-context-base.directive';
 export * from './lib/directives/context/validation-named-form-context.directive';
-export * from './lib/directives/context/validation-semantic-context.directive';
+export * from './lib/directives/context/semantic/validation-semantic-base.directive';
+export * from './lib/directives/context/semantic/validation-semantic-form-group-name.directive';
+export * from './lib/directives/context/semantic/validation-semantic-form-group.directive';
+export * from './lib/directives/context/semantic/validation-semantic-ng-model-group.directive';
+export * from './lib/directives/context/semantic/validation-semantic-standalone.directive';
 export * from './lib/directives/item/validation-control.directive';
 export * from './lib/directives/item/validation-control-name.directive';
 export * from './lib/directives/item/validation-group.directive';
@@ -56,3 +60,4 @@ export * from './lib/types';
 
 export * from './lib/validation-context.module';
 export * from './lib/validation-directives.module';
+export * from './lib/validation-semantic.module';

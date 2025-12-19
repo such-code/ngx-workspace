@@ -22,7 +22,7 @@ function normalizeValueAsString($value: any): string | null {
         return $value;
     }
     return typeof $value.toString === 'function' ? $value.toString() : null;
-};
+}
 
 export type ValidationRuleError = {
     value: any,
@@ -207,7 +207,8 @@ export class RequiredRule extends ValidationRuleWithMessage {
     }
 
     public validate($value: any): boolean {
-        return !!$value;
+        // Incorrectly handles `0`, exception is required.
+        return typeof $value === 'number' || !!$value;
     }
 
     public getRawMessageForValue($value: any): string {
@@ -227,7 +228,9 @@ export class NotEmptyRule extends ValidationRuleWithMessage {
     }
 
     public validate($value: any): boolean {
-        return !!$value && !!('' + $value).trim().length;
+        return $value !== null
+            && $value !== undefined
+            && !!('' + $value).trim().length;
     }
 
     public getRawMessageForValue($value: any): string {

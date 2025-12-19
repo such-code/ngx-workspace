@@ -11,13 +11,17 @@ import {
     ValidationModelDirective,
     ValidationNamedFormContextDirective,
     ValidationRuleError,
-    ValidationSemanticContextDirective,
+    ValidationSemanticDirectivesModule,
     ValidationSubmitEvent,
 } from '@such-code/ngx-form-validation';
 
 type FormType = {
     password: string,
     passwordConfirmation: string,
+    user: {
+        name: string,
+        surname: string
+    }
 }
 
 @Component({
@@ -28,24 +32,27 @@ type FormType = {
 
         ValidationModelDirective,
         ValidationNamedFormContextDirective,
-        ValidationSemanticContextDirective,
 
         ValidationCheckSubmitDirective,
 
         ValidationControlStateDirective,
         ValidationFieldErrorComponent,
+        ValidationSemanticDirectivesModule
     ],
     providers: [
         provideValidationService({
             "SemanticForm": {
-                password: [new RequiredRule(), new MinLengthRule(8)],
-                passwordConfirmation: [new RequiredRule()],
+                'password': [new RequiredRule(), new MinLengthRule(8)],
+                'passwordConfirmation': [new RequiredRule()],
+                'user.name': [new RequiredRule()],
+                'user.surname': [new RequiredRule()],
             },
         }),
     ]
 })
 export class FormSemanticComponent {
     public readonly semanticValidator: SemanticValidator = ($data: FormType): Record<string, ReadonlyArray<ValidationRuleError>> | null => {
+
         if ($data.passwordConfirmation !== $data.password) {
             return {
                 passwordConfirmation: [{
@@ -54,6 +61,19 @@ export class FormSemanticComponent {
                     interpolationSource: null,
                 }],
             };
+        }
+        return null;
+    }
+
+    public userSemanticValidator: SemanticValidator = ($data: FormType['user']): Record<string, ReadonlyArray<ValidationRuleError>> | null => {
+        if ($data?.name === 'Wrong') {
+            return {
+                'name': [{
+                    value: $data.name,
+                    rawMessage: `User name can't be equal to "Wrong"`,
+                    interpolationSource: null,
+                }]
+            }
         }
         return null;
     }
