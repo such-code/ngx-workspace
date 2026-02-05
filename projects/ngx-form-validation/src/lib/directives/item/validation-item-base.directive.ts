@@ -1,30 +1,33 @@
-import {Directive, inject, input, signal} from '@angular/core';
+import {DestroyRef, Directive, inject, Injector, input, OnInit, signal} from '@angular/core';
 import {AbstractControl, ControlContainer, ValidationErrors, Validator} from '@angular/forms';
-import {combineLatest, of} from 'rxjs';
+import {combineLatest, Observable, of} from 'rxjs';
 import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {ValidationRule} from '../../rules/rules';
-import {VALIDATION_CONTEXTS, ValidationContext} from '../../data/validation-context';
+import {collectAllValidationContexts, ValidationContext} from '../../data/validation-context';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {VALIDATION_SKIP_DEFAULT_RULES} from '../../types';
 
 @Directive({})
-export abstract class ValidationItemBaseDirective implements Validator {
+export abstract class ValidationItemBaseDirective implements Validator, OnInit {
 
-    public readonly name = input<string | null>(null);
     public readonly skipValidation = input<boolean>(false);
     public readonly skipRules = input<Array<string> | null>(null);
 
-    protected readonly controlContainer: ControlContainer | null = inject(ControlContainer, {optional: true});
+    protected readonly controlContainer: ControlContainer | null = inject(ControlContainer, {optional: true, skipSelf: true});
     protected readonly defaultSkipRules: Array<string> | null = inject(VALIDATION_SKIP_DEFAULT_RULES, {
         skipSelf: true,
         optional: true,
     });
-    protected readonly validationContexts: Array<ValidationContext> = inject(VALIDATION_CONTEXTS, {skipSelf: true});
+    protected readonly destroyRef = inject(DestroyRef);
+    protected readonly injector = inject(Injector);
+
+    // Collect all validation contexts from the entire injector hierarchy
+    protected readonly validationContexts: Array<ValidationContext> = collectAllValidationContexts(this.injector);
 
     protected readonly rules = signal<ReadonlyArray<ValidationRule> | null>(null);
 
-    protected constructor() {
-        const skipRules$ = toObservable(this.skipRules).pipe(
+    public ngOnInit(): void {
+        const skipRules$ = toObservable(this.skipRules, {injector: this.injector}).pipe(
             map(($rules) => {
                 return Array.isArray($rules)
                     ? $rules
@@ -32,15 +35,11 @@ export abstract class ValidationItemBaseDirective implements Validator {
             }),
         );
 
-        const name$ = toObservable(this.name).pipe(
-            distinctUntilChanged(),
-        );
-
-        toObservable(this.skipValidation).pipe(
+        toObservable(this.skipValidation, {injector: this.injector}).pipe(
             distinctUntilChanged(),
             switchMap($ => {
                 if (!$) {
-                    return name$.pipe(
+                    return this.provideName$().pipe(
                         map($name => {
                             if ($name && this.controlContainer && Array.isArray(this.controlContainer.path)) {
                                 return [...this.controlContainer.path, $name].join('.');
@@ -93,13 +92,11 @@ export abstract class ValidationItemBaseDirective implements Validator {
                 }
                 return of(null);
             }),
-            takeUntilDestroyed(),
+            takeUntilDestroyed(this.destroyRef),
         ).subscribe($ => {
             this.rules.set($);
         });
     }
-
-    protected abstract constructUnexpectedWarn(): string;
 
     public validate($control: AbstractControl): ValidationErrors | null {
         let errors: ValidationErrors | null = null;
@@ -121,4 +118,8 @@ export abstract class ValidationItemBaseDirective implements Validator {
         }
         return errors;
     }
+
+    protected abstract provideName$(): Observable<string | null>;
+
+    protected abstract constructUnexpectedWarn(): string;
 }

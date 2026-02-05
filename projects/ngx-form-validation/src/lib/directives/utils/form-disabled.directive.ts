@@ -1,8 +1,9 @@
 import {Directive, inject, Inject, InjectionToken, input, Optional, Provider} from '@angular/core';
-import {NgForm} from '@angular/forms';
+import {ControlContainer} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
 import {catchError, distinctUntilChanged, map, skip, startWith, switchMap} from 'rxjs/operators';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
+import {FormLikeDirective} from '../../util/ng-utils';
 
 export const FORM_DISABLED_SOURCE = new InjectionToken<Subject<Observable<any>>>('FORM_DISABLED_SOURCE');
 export const formDisabledSourceFactory = function (): Subject<Observable<any>> {
@@ -16,11 +17,11 @@ export const formDisabledSourceProvider: Provider = {
 
 @Directive({
     // tslint:disable-next-line:directive-selector
-    selector: 'form:not([ngNoForm]):not([formGroup]),ngForm,[ngForm]',
+    selector: 'form:not([ngNoForm]),ngForm,[ngForm],[formGroup]',
 })
 export class FormDisabledDirective {
 
-    protected readonly ngForm = inject(NgForm, {self: true});
+    protected readonly controlContainer = inject(ControlContainer, {self: true}) as FormLikeDirective;
 
     public readonly source = input<Observable<Observable<any>> | null>(null);
 
@@ -58,9 +59,9 @@ export class FormDisabledDirective {
             takeUntilDestroyed(),
         ).subscribe($ => {
             if ($) {
-                this.ngForm.form.disable();
+                this.controlContainer.form.disable();
             } else {
-                this.ngForm.form.enable();
+                this.controlContainer.form.enable();
             }
         });
     }

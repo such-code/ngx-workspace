@@ -1,6 +1,6 @@
 {
     "name": "@such-code/ngx-form-validation",
-    "version": "20.0.0",
+    "version": "20.1.6",
     "license": "MIT",
     "description": "Template-driven form validation for Angular.",
     "author": "Erik Podrez<erya14@gmail.com>",

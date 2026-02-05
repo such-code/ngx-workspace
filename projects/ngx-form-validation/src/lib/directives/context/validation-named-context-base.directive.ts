@@ -1,9 +1,9 @@
-import {Directive, inject, InjectionToken, input} from '@angular/core';
-import {of} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
+import {DestroyRef, Directive, inject, InjectionToken, Injector, input, OnInit} from '@angular/core';
 import {ValidationService} from '../../services/validation.service';
 import {ValidationContextWithMetadata} from '../../data/validation-context';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
+import {map, switchMap} from 'rxjs/operators';
+import {of} from 'rxjs';
 
 export const VALIDATION_CONTEXT_REFLECTION = new InjectionToken<ValidationContextWithMetadata<ValidationContextReflectionMetadata>>('VALIDATION_CONTEXT_REFLECTION');
 
@@ -25,15 +25,17 @@ export function validationContextReflectionProvider(): ValidationContextWithMeta
 }
 
 @Directive({})
-export abstract class ValidationNamedContextBaseDirective {
+export abstract class ValidationNamedContextBaseDirective implements OnInit {
 
     public readonly name = input<string | null>(null);
 
+    protected readonly destroyRef = inject(DestroyRef);
+    protected readonly injector = inject(Injector);
     protected readonly validationContextReflection = inject(VALIDATION_CONTEXT_REFLECTION, {self: true});
     protected readonly validationService = inject(ValidationService);
 
-    public constructor() {
-        toObservable(this.name).pipe(
+    public ngOnInit(): void {
+        toObservable(this.name, {injector: this.injector}).pipe(
             switchMap(($name) => {
                 const emptyState = {
                     name: $name,
@@ -55,7 +57,7 @@ export abstract class ValidationNamedContextBaseDirective {
                 }
                 return of(emptyState);
             }),
-            takeUntilDestroyed(),
+            takeUntilDestroyed(this.destroyRef),
         ).subscribe($state => {
             this.validationContextReflection.setMetadata({reflectedName: $state.name});
             this.validationContextReflection.swapFields($state.fields || {});

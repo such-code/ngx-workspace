@@ -13,7 +13,7 @@ import {VALIDATION_CONTEXTS} from '../../data/validation-context';
     // Selector params are taken from angular source code.
     // This could be modified to create context without form?
     // tslint:disable-next-line:directive-selector
-    selector: 'form[name]:not([ngNoForm]):not([formGroup]),[ngForm][name]',
+    selector: 'form[name]:not([ngNoForm]),[ngForm][name]',
     providers: [
         {
             provide: VALIDATION_CONTEXT_REFLECTION,

@@ -7,12 +7,18 @@ import {FormDisabledDirective} from './directives/utils/form-disabled.directive'
 import {ValidationControlStateDirective} from './directives/validation/validation-control-state.directive';
 import {ValidationFieldErrorComponent} from './components/field-error/validation-field-error.component';
 import {ValidationFormErrorComponent} from './components/form-error/validation-form-error.component';
+import {ValidationControlDirective} from './directives/item/validation-control.directive';
+import {ValidationControlNameDirective} from './directives/item/validation-control-name.directive';
+import {ValidationGroupDirective} from './directives/item/validation-group.directive';
 
 @NgModule({
     imports: [
         ValidationNamedFormContextDirective,
         ValidationLocalContextDirective,
 
+        ValidationControlDirective,
+        ValidationControlNameDirective,
+        ValidationGroupDirective,
         ValidationModelDirective,
         ValidationCheckSubmitDirective,
         FormDisabledDirective,
@@ -25,6 +31,9 @@ import {ValidationFormErrorComponent} from './components/form-error/validation-f
         ValidationNamedFormContextDirective,
         ValidationLocalContextDirective,
 
+        ValidationControlDirective,
+        ValidationControlNameDirective,
+        ValidationGroupDirective,
         ValidationModelDirective,
         ValidationCheckSubmitDirective,
         FormDisabledDirective,
