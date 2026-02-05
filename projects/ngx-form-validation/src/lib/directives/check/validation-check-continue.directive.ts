@@ -14,22 +14,22 @@ export class ValidationCheckContinueDirective extends ValidationCheckBaseDirecti
     public override readonly onValidated = output<ValidationSubmitEvent>({alias: 'onValidatedContinue'});
 
     protected performSubmit(): void {
-        const previousSubmitState = this.ngForm.submitted;
-        const originalSubmitEmitter = this.ngForm.ngSubmit;
+        const previousSubmitState = this.controlContainer.submitted;
+        const originalSubmitEmitter = this.controlContainer.ngSubmit;
 
         // Prevent form from dispatching submit event
-        this.ngForm.ngSubmit = ValidationCheckContinueDirective.ngSubmitStub;
+        this.controlContainer.ngSubmit = ValidationCheckContinueDirective.ngSubmitStub;
         // This submit-event is required to update all ngModels and validate the form.
-        this.ngForm.onSubmit(new CustomEvent('submit'));
+        this.controlContainer.onSubmit(new CustomEvent('submit'));
         // Restore original event dispatcher.
-        this.ngForm.ngSubmit = originalSubmitEmitter;
+        this.controlContainer.ngSubmit = originalSubmitEmitter;
 
         // Restore previous submitted state if required
-        if (previousSubmitState !== this.ngForm.submitted) {
-            (this.ngForm as { submitted: boolean }).submitted = previousSubmitState;
+        if (previousSubmitState !== this.controlContainer.submitted) {
+            (this.controlContainer as { submitted: boolean }).submitted = previousSubmitState;
         }
 
         // This is required to mark all fields as dirty (errors will be displayed in that case).
-        ValidationCheckBaseDirective.markDirtyRecursively(this.ngForm.control);
+        ValidationCheckBaseDirective.markDirtyRecursively(this.controlContainer.control);
     }
 }

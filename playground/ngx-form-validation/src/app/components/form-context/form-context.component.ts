@@ -39,8 +39,8 @@ type FormType = {
                 first: [new RequiredRule()],
                 second: [new RequiredRule()],
                 third: [new RequiredRule()],
-                forth: [new RequiredRule()],
-                fifth: [new RequiredRule()],
+                'group.forth': [new RequiredRule()],
+                'group.fifth': [new RequiredRule()],
             },
         }),
     ]

@@ -1,9 +1,48 @@
-import {InjectionToken} from '@angular/core';
+import {InjectionToken, Injector} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import {ValidationRule} from '../rules/rules';
 
 export const VALIDATION_CONTEXTS = new InjectionToken<Array<ValidationContext>>('VALIDATION_CONTEXTS');
+
+/**
+ * Helper function that collects ALL validation contexts from the entire injector hierarchy.
+ * Starts from the provided injector and walks up the parent chain.
+ * Stops when no more contexts are found to optimize performance.
+ *
+ * @param injector - The injector to start collecting contexts from (usually the component's injector)
+ * @returns Array of all validation contexts from the hierarchy
+ */
+export function collectAllValidationContexts(injector: Injector): Array<ValidationContext> {
+    const allContexts: Array<ValidationContext> = [];
+
+    // Collect contexts from current level and all parent levels
+    let currentInjector: Injector | null = injector;
+
+    while (currentInjector) {
+        const contexts = currentInjector.get(VALIDATION_CONTEXTS, null, {optional: true});
+
+        if (contexts && Array.isArray(contexts)) {
+            // Add all contexts from this level
+            allContexts.push(...contexts);
+        } else {
+            // No contexts found at this level, stop to save resources
+            break;
+        }
+
+        // Move to parent injector
+        const parentInjector: Injector | null = currentInjector.get(Injector, null, {skipSelf: true, optional: true});
+
+        // Check if we reached the root or if parent is the same (avoid infinite loop)
+        if (!parentInjector || parentInjector === currentInjector) {
+            break;
+        }
+
+        currentInjector = parentInjector;
+    }
+
+    return allContexts;
+}
 
 export class ValidationContextField {
 

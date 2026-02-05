@@ -1,7 +1,6 @@
 import {
     Attribute,
     ChangeDetectionStrategy,
-    ChangeDetectorRef,
     Component,
     DestroyRef,
     DoCheck,
@@ -12,12 +11,13 @@ import {
     OnInit,
     Renderer2,
 } from '@angular/core';
-import {ControlContainer, FormGroup, NgForm, ValidationErrors} from '@angular/forms';
+import {ControlContainer, FormControl, FormGroup, ValidationErrors} from '@angular/forms';
 import {combineLatest, distinctUntilChanged, merge, Observable, of, Subject, switchMap} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
 import {AsyncPipe, KeyValuePipe} from '@angular/common';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {ValidationErrorPipe} from '../../pipes/validation-error.pipe';
+import {FormLikeDirective, isFormLikeDirective} from '../../util/ng-utils';
 
 @Component({
     standalone: true,
@@ -34,13 +34,12 @@ export class ValidationFieldErrorComponent implements DoCheck, OnInit, OnDestroy
     public static STATE_VISIBLE = 'data-state-visible';
 
     public readonly for = input<string | null>(null);
+    public readonly forControl = input<FormControl | null>(null);
 
     public readonly errors$: Observable<ValidationErrors | null>;
 
-    protected readonly changeDetectorRef = inject(ChangeDetectorRef);
     protected readonly destroyRef = inject(DestroyRef);
     protected readonly elementRef = inject(ElementRef);
-    protected readonly ngForm = inject(NgForm, {host: true, optional: true});
     protected readonly parentControlContainer = inject(ControlContainer, {host: true, skipSelf: true});
     protected readonly renderer = inject(Renderer2);
 
@@ -63,26 +62,36 @@ export class ValidationFieldErrorComponent implements DoCheck, OnInit, OnDestroy
         }
 
         // Since the form does not emit anything when is reset, this is the only way how to implement submitted state.
-        this.submitted$ = this.ngForm
-            ? this.ngForm.ngSubmit.pipe(
-                map(() => this.ngForm!.submitted),
-                startWith(this.ngForm!.submitted),
+        this.submitted$ = this.parentControlContainer && isFormLikeDirective(this.parentControlContainer.formDirective)
+            ? this.parentControlContainer.formDirective.ngSubmit.pipe(
+                map(() => (this.parentControlContainer.formDirective as FormLikeDirective).submitted),
+                startWith(this.parentControlContainer.formDirective!.submitted),
             )
             : of(false);
 
-        const control$ = toObservable(this.for).pipe(
-            distinctUntilChanged(),
-            switchMap(($: string | null) => {
-                if (typeof $ === 'string') {
-                    // This is a workaround, since there are no correct ways to track controls changes.
-                    return this.doCheck$.pipe(
-                        startWith(),
-                        map(() => {
-                            return (this.parentControlContainer.control as FormGroup)!.controls[$];
+        const for$ = toObservable(this.for);
+        const forControl$ = toObservable(this.forControl);
+
+        const control$ = forControl$.pipe(
+            switchMap($forControl => {
+                if ($forControl === null) {
+                    return for$.pipe(
+                        distinctUntilChanged(),
+                        switchMap(($: string | null) => {
+                            if (typeof $ === 'string') {
+                                // This is a workaround, since there are no correct ways to track controls changes.
+                                return this.doCheck$.pipe(
+                                    startWith(),
+                                    map(() => {
+                                        return (this.parentControlContainer.control as FormGroup)!.controls[$];
+                                    }),
+                                );
+                            }
+                            return of(null);
                         }),
                     );
                 }
-                return of(null);
+                return of($forControl);
             }),
             distinctUntilChanged(),
         );
