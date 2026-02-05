@@ -79,6 +79,6 @@ export class FormSemanticComponent {
     }
 
     public handleSubmit($event: ValidationSubmitEvent<FormType>): void {
-        console.warn($event);
+        console.warn($event, $event.getRawFormData());
     }
 }
