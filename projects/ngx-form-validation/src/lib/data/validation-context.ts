@@ -2,6 +2,7 @@ import {InjectionToken, Injector} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import {ValidationRule} from '../rules/rules';
+import {escapeRegExp} from '@angular/compiler';
 
 export const VALIDATION_CONTEXTS = new InjectionToken<Array<ValidationContext>>('VALIDATION_CONTEXTS');
 
@@ -83,51 +84,133 @@ export class ValidationContextField {
         return this.internalRules$.value;
     }
 }
+const globNameRegExp = /(^|\.)\*($|\.)/g;
+
+function nameToGlobRegExp($name: string): RegExp {
+    return new RegExp(`^${escapeRegExp($name).replace('\\*', '[^\\.]+')}$`);
+}
+
+type ContextsFieldsState = {
+    hasGlobs: boolean,
+    fields: Record<string, ValidationContextField>,
+    globsMap: Map<RegExp, string>,
+}
+
+function createContextsFieldsState($fields: Record<string, ValidationContextField>): ContextsFieldsState {
+    const globsMap = new Map<RegExp, string>(Object.keys($fields).reduce((acc, fieldName) => {
+        if (globNameRegExp.test(fieldName)) {
+            return [...acc, [nameToGlobRegExp(fieldName), fieldName]];
+        }
+        return acc;
+    }, <Array<[RegExp, string]>>[]));
+    const hasGlobs = globsMap.size > 0;
+    return {
+        hasGlobs,
+        fields: $fields,
+        globsMap,
+    };
+}
+
+function wrapContextsFieldsState($fields: Record<string, ValidationContextField>): ContextsFieldsState {
+    return {
+        hasGlobs: false,
+        fields: $fields,
+        globsMap: new Map<RegExp, string>(),
+    }
+}
 
 export class ValidationContext {
 
     public readonly fields$: Observable<Record<string, ValidationContextField>>;
 
-    protected readonly internalFields$: BehaviorSubject<Record<string, ValidationContextField>>;
+    protected readonly internalFields$: BehaviorSubject<ContextsFieldsState>;
 
     constructor(
         public readonly name: string | null = null,
         $fields: Record<string, ValidationContextField> = {},
+        protected readonly skipGlobs: boolean = true,
     ) {
-        this.internalFields$ = new BehaviorSubject($fields);
-        this.fields$ = this.internalFields$.asObservable();
+        this.internalFields$ = new BehaviorSubject(
+            skipGlobs ? wrapContextsFieldsState($fields) : createContextsFieldsState($fields)
+        );
+        this.fields$ = this.internalFields$.pipe(
+            map($ => $.fields)
+        );
     }
 
     public swapFields($value: Record<string, ValidationContextField>): void {
-        this.internalFields$.next($value);
+        this.internalFields$.next(
+            this.skipGlobs ? wrapContextsFieldsState($value) : createContextsFieldsState($value)
+        );
     }
 
     public changeField($name: string, $value: ValidationContextField): void {
-        this.internalFields$.next({
-            ...this.internalFields$.value,
-            [$name]: $value,
-        });
+        const glob = $name.match(globNameRegExp)
+            ? nameToGlobRegExp($name)
+            : null;
+        if (!!glob) {
+            this.internalFields$.next({
+                hasGlobs: true,
+                fields: {
+                    ...this.internalFields$.value.fields,
+                    [$name]: $value,
+                },
+                globsMap: new Map([...this.internalFields$.value.globsMap.entries(), [glob, $name]]),
+            });
+        } else {
+            this.internalFields$.next({
+                ...this.internalFields$.value,
+                fields: {
+                    ...this.internalFields$.value.fields,
+                    [$name]: $value,
+                },
+            });
+        }
     }
 
     public removeField($name: string): void {
-        if ($name in this.internalFields$.value) {
-            const newFields = {...this.internalFields$.value};
+        if ($name in this.internalFields$.value.fields) {
+            const newFields = {...this.internalFields$.value.fields};
             delete newFields[$name];
-            this.internalFields$.next(newFields);
+            const glob = $name.match(globNameRegExp)
+                ? nameToGlobRegExp($name)
+                : null;
+            if (!!glob) {
+                const globsMap = new Map(Array.from(this.internalFields$.value.globsMap.entries()).filter(([_, $]) => $ !== $name));
+                this.internalFields$.next({
+                    hasGlobs: globsMap.size > 0,
+                    fields: newFields,
+                    globsMap,
+                });
+            } else {
+                this.internalFields$.next({
+                    ...this.internalFields$.value,
+                    fields: newFields,
+                });
+            }
         }
     }
 
     public clean(): void {
-        this.internalFields$.next({});
+        this.internalFields$.next(wrapContextsFieldsState({}));
     }
 
     public getFieldSnapshot($name: string): ValidationContextField | null {
-        return this.internalFields$.value[$name] || null;
+        return this.internalFields$.value.fields[$name] || null;
     }
 
-    public getField$($name: string): Observable<ValidationContextField> {
-        return this.fields$.pipe(
-            map($ => $[$name]),
+    public getField$($name: string): Observable<ValidationContextField | null> {
+        return this.internalFields$.pipe(
+            map($contextFields => {
+                if (!($name in $contextFields.fields) && $contextFields.hasGlobs) {
+                    for (const [regExp, fieldName] of $contextFields.globsMap) {
+                        if (regExp.test($name)) {
+                            return $contextFields.fields[fieldName];
+                        }
+                    }
+                }
+                return $contextFields.fields[$name] || null;
+            }),
             distinctUntilChanged(),
         );
     }
@@ -143,7 +226,7 @@ export class ValidationContextWithMetadata<T extends Record<string, any>> extend
         $metadata: T,
         $fields?: Record<string, ValidationContextField>,
     ) {
-        super($name, $fields);
+        super($name, $fields, false);
         this.internalMetadata$ = new BehaviorSubject($metadata);
         this.metadata$ = this.internalMetadata$.asObservable();
     }
