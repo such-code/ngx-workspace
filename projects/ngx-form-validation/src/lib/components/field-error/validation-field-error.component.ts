@@ -83,7 +83,9 @@ export class ValidationFieldErrorComponent implements DoCheck, OnInit, OnDestroy
                                 return this.doCheck$.pipe(
                                     startWith(),
                                     map(() => {
-                                        return (this.parentControlContainer.control as FormGroup)!.controls[$];
+                                        return this.parentControlContainer.control
+                                            ? (this.parentControlContainer.control as FormGroup).controls[$]
+                                            : null;
                                     }),
                                 );
                             }
