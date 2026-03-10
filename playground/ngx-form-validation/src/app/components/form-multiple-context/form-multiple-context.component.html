@@ -1,0 +1,35 @@
+<div class="container">
+    <form name="MultipleContextForm" #tplForm="ngForm">
+        <div class="mb-3">
+            <label for="parent-field" class="form-label">Parent</label>
+            <input
+                type="text" class="form-control" id="parent-field"
+                name="parent" ngModel
+            >
+            <ngx-validation-field-error for="parent"></ngx-validation-field-error>
+        </div>
+        <ng-container ngModelGroup="children">
+            @for (row of rows(); track row; let i = $index, count = $count) {
+                <div class="mb-3" [ngModelGroup]="'' + row" validationContext="MultipleContextFormChild">
+                    <label [for]="'child-field' + row" class="form-label">Child</label>
+                    <div class="input-group">
+                        <input
+                            type="text" class="form-control" [id]="'child-field' + row"
+                            name="child" ngModel
+                        >
+                        @if (count !== 1) {
+                            <button class="btn btn-outline-secondary" type="button" (click)="removeRow(i)">
+                                Remove
+                            </button>
+                        }
+                    </div>
+                    <ngx-validation-field-error for="child"></ngx-validation-field-error>
+                </div>
+            }
+        </ng-container>
+        <div class="mb-3">
+            <button type="button" class="btn btn-link" (click)="addRow()">Add child</button>
+        </div>
+        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
+    </form>
+</div>

@@ -5,10 +5,12 @@ import {FormSemanticComponent} from './components/form-semantic/form-semantic.co
 import {FormErrorComponent} from './components/form-error/form-error.component';
 import {FormObservationComponent} from './components/form-observation/form-observation.component';
 import {FormReactiveComponent} from './components/form-reactive/form-reactive.component';
+import {FormMultipleContextComponent} from './components/form-multiple-context/form-multiple-context.component';
 
 export const routes: Routes = [
   { path: 'directives', component: FormDirectivesComponent },
   { path: 'context', component: FormContextComponent },
+  { path: 'multiple-context', component: FormMultipleContextComponent },
   { path: 'semantic', component: FormSemanticComponent },
   { path: 'error', component: FormErrorComponent },
   { path: 'observation', component: FormObservationComponent },

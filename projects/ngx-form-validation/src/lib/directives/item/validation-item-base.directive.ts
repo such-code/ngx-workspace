@@ -3,9 +3,14 @@ import {AbstractControl, ControlContainer, ValidationErrors, Validator} from '@a
 import {combineLatest, Observable, of} from 'rxjs';
 import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {ValidationRule} from '../../rules/rules';
-import {collectAllValidationContexts, ValidationContext} from '../../data/validation-context';
+import {
+    collectAllValidationContexts,
+    ValidationContext,
+    ValidationContextWithMetadata,
+} from '../../data/validation-context';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {VALIDATION_SKIP_DEFAULT_RULES} from '../../types';
+import {isValidationContextReflectionMetadata} from '../context/validation-named-context-base.directive';
 
 @Directive({})
 export abstract class ValidationItemBaseDirective implements Validator, OnInit {
@@ -51,7 +56,20 @@ export abstract class ValidationItemBaseDirective implements Validator, OnInit {
                                 return combineLatest([
                                     skipRules$,
                                     ...this.validationContexts.map($context => {
-                                        return $context.getField$($name).pipe(
+                                        const field$ = $context instanceof ValidationContextWithMetadata
+                                            ? $context.metadata$.pipe(
+                                                switchMap($metadata => {
+                                                    const name = isValidationContextReflectionMetadata($metadata) && $metadata.path !== null
+                                                        ? $name.startsWith($metadata.path)
+                                                            ? $name.substring($metadata.path.length + 1)
+                                                            : $name
+                                                        : $name;
+                                                    return $context.getField$(name).pipe()
+                                                }),
+                                            )
+                                            : $context.getField$($name);
+
+                                        return field$.pipe(
                                             switchMap($contextField => {
                                                 if ($contextField) {
                                                     return $contextField.rules$;

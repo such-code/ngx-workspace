@@ -18,3 +18,7 @@ export function interpolate($msg: string, ...$values: Array<object>): string {
         }
     });
 }
+
+export function escapeRegExp($string: string): string {
+    return $string.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+}
