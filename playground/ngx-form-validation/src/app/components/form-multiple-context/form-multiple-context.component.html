@@ -11,11 +11,15 @@
         <ng-container ngModelGroup="children">
             @for (row of rows(); track row; let i = $index, count = $count) {
                 <div class="mb-3" [ngModelGroup]="'' + row" validationContext="MultipleContextFormChild">
-                    <label [for]="'child-field' + row" class="form-label">Child</label>
+                    <label [for]="'child-field1' + row" class="form-label">Child</label>
                     <div class="input-group">
                         <input
-                            type="text" class="form-control" [id]="'child-field' + row"
-                            name="child" ngModel
+                            type="text" class="form-control" [id]="'child-field1' + row"
+                            name="child1" ngModel
+                        >
+                        <input
+                            type="text" class="form-control" [id]="'child-field2' + row"
+                            name="child2" ngModel
                         >
                         @if (count !== 1) {
                             <button class="btn btn-outline-secondary" type="button" (click)="removeRow(i)">
