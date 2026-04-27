@@ -84,7 +84,7 @@ export class ValidationContextField {
         return this.internalRules$.value;
     }
 }
-const globNameRegExp = /(^|\.)\*($|\.)/g;
+const globNameRegExp = /(^|\.)\*($|\.)/;
 
 function nameToGlobRegExp($name: string): RegExp {
     return new RegExp(`^${escapeRegExp($name).replace('\\*', '[^\\.]+')}$`);
@@ -145,7 +145,7 @@ export class ValidationContext {
     }
 
     public changeField($name: string, $value: ValidationContextField): void {
-        const glob = $name.match(globNameRegExp)
+        const glob = globNameRegExp.test($name)
             ? nameToGlobRegExp($name)
             : null;
         if (!!glob) {
@@ -172,7 +172,7 @@ export class ValidationContext {
         if ($name in this.internalFields$.value.fields) {
             const newFields = {...this.internalFields$.value.fields};
             delete newFields[$name];
-            const glob = $name.match(globNameRegExp)
+            const glob = globNameRegExp.test($name)
                 ? nameToGlobRegExp($name)
                 : null;
             if (!!glob) {
