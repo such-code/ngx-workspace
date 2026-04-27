@@ -40,7 +40,8 @@ type FormType = {
         provideValidationService({
             'MultipleContextForm': {
                 parent: [new RequiredRule()],
-                'children.*.child': [new MinLengthRule(2)],
+                'children.*.child1': [new MinLengthRule(2)],
+                'children.*.child2': [new MinLengthRule(2)],
             },
             'MultipleContextFormChild': {
                 child: [new RequiredRule()],

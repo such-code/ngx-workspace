@@ -84,7 +84,7 @@ export class ValidationContextField {
         return this.internalRules$.value;
     }
 }
-const globNameRegExp = /(^|\.)\*($|\.)/g;
+const globNameRegExp = /(^|\.)\*($|\.)/;
 
 function nameToGlobRegExp($name: string): RegExp {
     return new RegExp(`^${escapeRegExp($name).replace('\\*', '[^\\.]+')}$`);
