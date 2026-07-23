@@ -87,7 +87,7 @@ export class ValidationContextField {
 const globNameRegExp = /(^|\.)\*($|\.)/;
 
 function nameToGlobRegExp($name: string): RegExp {
-    return new RegExp(`^${escapeRegExp($name).replace('\\*', '[^\\.]+')}$`);
+    return RegExp(`^${escapeRegExp($name).replace(/\*/g, '[^\\.]+')}$`);
 }
 
 type ContextsFieldsState = {
