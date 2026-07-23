@@ -8,6 +8,9 @@
         "type": "git",
         "url": "git+https://github.com/such-code/ngx-workspace"
     },
+    "publishConfig": {
+        "tag": "angular@20"
+    },
     "peerDependencies": {
         "@angular/common": "^20.0.3",
         "@angular/core": "^20.0.3"
