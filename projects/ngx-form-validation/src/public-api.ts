@@ -11,6 +11,8 @@ export * from './lib/data/error-collection';
 export * from './lib/data/validation-context';
 
 export * from './lib/directives/check/validation-check-submit.directive';
+export * from './lib/directives/check/validation-check-continue.directive';
+export * from './lib/directives/check/validation-check-event.directive';
 export * from './lib/directives/check/validation-submit-event';
 export * from './lib/directives/context/validation-local-context.directive';
 export * from './lib/directives/context/validation-named-context.directive';

@@ -1,12 +1,12 @@
 import {Directive, output} from '@angular/core';
-import {ValidationCheckBaseDirective} from './validation-check-base.directive';
+import {ValidationCheckPointerBaseDirective} from './validation-check-pointer-base.directive';
 import {ValidationSubmitEvent} from './validation-submit-event';
 
 @Directive({
     // tslint:disable-next-line:directive-selector
     selector: '[onValid],[onInvalid],[onValidated]',
 })
-export class ValidationCheckSubmitDirective extends ValidationCheckBaseDirective {
+export class ValidationCheckSubmitDirective extends ValidationCheckPointerBaseDirective {
 
     public override readonly onValid = output<ValidationSubmitEvent>();
     public override readonly onInvalid = output<ValidationSubmitEvent>();

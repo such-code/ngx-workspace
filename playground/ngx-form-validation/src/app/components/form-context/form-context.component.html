@@ -1,5 +1,5 @@
 <div class="container">
-    <form name="ContextForm" #tplForm="ngForm">
+    <form name="ContextForm" #tplForm="ngForm" (onSubmitValid)="handleSubmit($event)">
         <div class="mb-3">
             <label for="first-field" class="form-label">First</label>
             <input
@@ -42,6 +42,6 @@
                 <ngx-validation-field-error for="fifth"></ngx-validation-field-error>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary" (onValid)="handleSubmit($event)" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
+        <button type="submit" class="btn btn-primary" [disabled]="tplForm.submitted && tplForm.invalid">Submit</button>
     </form>
 </div>

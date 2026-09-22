@@ -7,6 +7,7 @@ import {ValidatorRequiredDirective} from './directives/validators/validator-requ
 import {ValidationCheckSubmitDirective} from './directives/check/validation-check-submit.directive';
 import {ValidationControlStateDirective} from './directives/validation/validation-control-state.directive';
 import {ValidationFieldErrorComponent} from './components/field-error/validation-field-error.component';
+import {ValidationCheckEventDirective} from './directives/check/validation-check-event.directive';
 
 @NgModule({
     imports: [
@@ -17,6 +18,7 @@ import {ValidationFieldErrorComponent} from './components/field-error/validation
         ValidatorRequiredDirective,
 
         ValidationCheckSubmitDirective,
+        ValidationCheckEventDirective,
 
         ValidationControlStateDirective,
         ValidationFieldErrorComponent,

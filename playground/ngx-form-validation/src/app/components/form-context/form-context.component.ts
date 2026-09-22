@@ -3,6 +3,7 @@ import {FormsModule} from '@angular/forms';
 import {
     provideValidationService,
     RequiredRule,
+    ValidationCheckEventDirective,
     ValidationCheckSubmitDirective,
     ValidationControlStateDirective,
     ValidationFieldErrorComponent,
@@ -28,10 +29,9 @@ type FormType = {
         ValidationModelDirective,
         ValidationNamedFormContextDirective,
 
-        ValidationCheckSubmitDirective,
-
         ValidationControlStateDirective,
         ValidationFieldErrorComponent,
+        ValidationCheckEventDirective,
     ],
     providers: [
         provideValidationService({
