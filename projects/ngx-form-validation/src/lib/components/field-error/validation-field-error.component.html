@@ -1,4 +1,0 @@
-@let errors = errors$ | async;
-@for (error of errors | keyvalue; track error.key) {
-    <div>{{ error.value | ngxFormValidationError | async }}</div>
-}

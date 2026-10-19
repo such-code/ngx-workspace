@@ -1,5 +1,3 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
@@ -10,8 +8,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "ngx-form-validation": [
-        "./dist/ngx-form-validation"
+      "@such-code/ngx-forms": [
+        "./projects/ngx-forms/src/public-api.ts"
       ]
     },
     "skipLibCheck": true,

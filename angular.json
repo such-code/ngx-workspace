@@ -3,64 +3,79 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "ngx-form-validation": {
+        "ngx-forms": {
             "projectType": "library",
-            "root": "projects/ngx-form-validation",
-            "sourceRoot": "projects/ngx-form-validation/src",
-            "prefix": "lib",
+            "root": "projects/ngx-forms",
+            "sourceRoot": "projects/ngx-forms/src",
+            "prefix": "ngx",
             "architect": {
                 "build": {
                     "builder": "@angular/build:ng-packagr",
                     "options": {
-                        "project": "projects/ngx-form-validation/ng-package.json"
+                        "project": "projects/ngx-forms/ng-package.json"
                     },
                     "configurations": {
                         "production": {
-                            "tsConfig": "projects/ngx-form-validation/tsconfig.lib.prod.json"
+                            "tsConfig": "projects/ngx-forms/tsconfig.lib.prod.json"
                         },
                         "development": {
-                            "tsConfig": "projects/ngx-form-validation/tsconfig.lib.json"
+                            "tsConfig": "projects/ngx-forms/tsconfig.lib.json"
                         }
                     },
                     "defaultConfiguration": "production"
                 },
                 "test": {
-                    "builder": "@angular/build:karma",
+                    "builder": "@angular/build:unit-test",
                     "options": {
-                        "tsConfig": "projects/ngx-form-validation/tsconfig.spec.json",
-                        "polyfills": [
-                            "zone.js",
-                            "zone.js/testing"
-                        ]
+                        "tsConfig": "projects/ngx-forms/tsconfig.spec.json",
+                        "runner": "vitest",
+                        "buildTarget": "::development"
                     }
                 }
             }
+        },
+        "playground": {
+            "projectType": "application",
+            "root": "playground",
+            "sourceRoot": "playground/src",
+            "prefix": "app",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:application",
+                    "options": {
+                        "outputPath": "dist/playground",
+                        "browser": "playground/src/main.ts",
+                        "tsConfig": "playground/tsconfig.app.json",
+                        "styles": [
+                            "node_modules/bootstrap/dist/css/bootstrap.min.css",
+                            "playground/src/styles.css"
+                        ]
+                    },
+                    "configurations": {
+                        "production": {
+                            "outputHashing": "all"
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular/build:dev-server",
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "playground:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "playground:build:development"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                }
+            }
         }
-    },
-    "schematics": {
-      "@schematics/angular:component": {
-        "type": "component"
-      },
-      "@schematics/angular:directive": {
-        "type": "directive"
-      },
-      "@schematics/angular:service": {
-        "type": "service"
-      },
-      "@schematics/angular:guard": {
-        "typeSeparator": "."
-      },
-      "@schematics/angular:interceptor": {
-        "typeSeparator": "."
-      },
-      "@schematics/angular:module": {
-        "typeSeparator": "."
-      },
-      "@schematics/angular:pipe": {
-        "typeSeparator": "."
-      },
-      "@schematics/angular:resolver": {
-        "typeSeparator": "."
-      }
     }
 }

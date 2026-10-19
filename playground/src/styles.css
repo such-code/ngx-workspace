@@ -1,0 +1,5 @@
+ngx-field-errors { display: block; color: var(--bs-danger); font-size: .875em; min-height: 1.25em; }
+ngx-form-errors[data-state-visible] { display: block; border: 1px solid var(--bs-danger); border-radius: .375rem; padding: .75rem; margin-bottom: 1rem; color: var(--bs-danger); }
+[data-state-validated] { border-color: var(--bs-danger) !important; }
+form[data-state-submitting] { opacity: .7; }
+pre.model { background: var(--bs-light); padding: .75rem; border-radius: .375rem; font-size: .8rem; }
