@@ -13,11 +13,11 @@ npm i @such-code/ngx-forms
 
 ```ts
 import {Component, inject, signal} from '@angular/core';
-import {FormField} from '@angular/forms/signals';
+
 import {applyRules, EmailRule, ngxForm, NgxForms, RequiredRule} from '@such-code/ngx-forms';
 
 @Component({
-    imports: [FormField, NgxForms],
+    imports: [NgxForms],
     template: `
         <form [ngxForm]="form">
             <ngx-form-errors heading="Could not save"/>
@@ -51,7 +51,7 @@ export class ContactComponent {
 | Generic / connection errors | `form.errors.formErrors()`, `<ngx-form-errors>` |
 | Disable form while submitting | automatic (`disableWhileSubmitting: false` to opt out) |
 | Cross-field validation with the v21 result shape | `semantic(path, value => ({'relative.path': 'message'}))` |
-| Dynamic arrays and groups | `arrayOps(form.fields.items)`; update the model for groups |
+| Dynamic arrays and groups | `arrayOps(form.fields.items)` with `@for (item of form.fields.items; track item)`; update the model for groups |
 | Structure that follows input | `reaction(model, select, apply)`; Signal Forms `hidden()` / `applyWhen()` |
 | Multistep wizard on one model | `wizard(form, steps)`, `step(path, id)` |
 | Correct input while typing / on blur | `[ngxNormalize]`, `normalizers`; Signal Forms `transformedValue()` for parse/format |

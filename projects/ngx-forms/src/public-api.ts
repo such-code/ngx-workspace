@@ -25,6 +25,9 @@ export * from './lib/signals/wizard';
 export {childField, walkFields} from './lib/signals/field-tree';
 export type {AnyField, AnyReadonlyField} from './lib/signals/field-tree';
 
+// Signal Forms binding directive, re-exported so `NgxForms` (or this import) is all a template needs.
+export {FormField} from '@angular/forms/signals';
+
 // Template building blocks.
 export * from './lib/ui/form.directive';
 export * from './lib/ui/field-errors.component';

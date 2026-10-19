@@ -47,7 +47,7 @@ protected readonly form = ngxForm(this.model, null, {name: 'ContextForm', action
 </form>
 ```
 
-Component imports: `FormsModule` + `Validation*Directive`s → `FormField` (from `@angular/forms/signals`) + `NgxForms`.
+Component imports: `FormsModule` + `Validation*Directive`s → `NgxForms` (includes Signal Forms `FormField`, also re-exported from `@such-code/ngx-forms`).
 
 The race where a form exists before its controls registered (template-driven forms register in a microtask) is gone:
 the field tree exists as soon as the model does.
@@ -129,7 +129,9 @@ The wire format is unchanged. Differences in how errors are applied:
   show asterisks or use native constraints.
 - **Hidden and disabled fields** produce no errors in Signal Forms, including server errors; errors reappear when the
   field is shown or enabled again.
-- **Array items**: Signal Forms keeps item state by object identity. Give items a stable id, `track` by it, and use
+- **Array items**: Signal Forms keeps item state by object identity. Write `@for (item of form.fields.items; track item)`:
+  the field itself is the stable identity. Do not track by `item().value().id`: `@for` re-evaluates the track
+  expression for removed items, and reading state of a removed (orphaned) field throws `NG01904`. Use
   `arrayOps()` (or immutable updates) instead of mutating arrays.
 - **Submitting while async validators run**: `form.submit()` waits for them by default (`ignoreValidators: 'none'`);
   pass `{ignoreValidators: 'pending'}` for Signal Forms' default behaviour.

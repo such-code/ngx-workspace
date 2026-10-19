@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
-import {FormField} from '@angular/forms/signals';
+
 import {MinLengthRule, ngxForm, NgxForms, provideRuleTemplates, RequiredRule, RuleRegistry} from '@such-code/ngx-forms';
 
 /**
@@ -8,7 +8,7 @@ import {MinLengthRule, ngxForm, NgxForms, provideRuleTemplates, RequiredRule, Ru
  * and a rule is added at runtime to show late templates.
  */
 @Component({
-    imports: [FormField, NgxForms, JsonPipe],
+    imports: [NgxForms, JsonPipe],
     providers: [
         provideRuleTemplates({
             Contact: {

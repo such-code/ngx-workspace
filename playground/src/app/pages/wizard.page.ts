@@ -1,6 +1,6 @@
 import {Component, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
-import {FormField, hidden} from '@angular/forms/signals';
+import {hidden} from '@angular/forms/signals';
 import {
     AllowedValueRule,
     applyRules,
@@ -21,7 +21,7 @@ type Signup = {
 };
 
 @Component({
-    imports: [FormField, NgxForms, JsonPipe],
+    imports: [NgxForms, JsonPipe],
     template: `
         <h2>Wizard: one model, steps validated on their own</h2>
         <ol class="nav nav-pills mb-3">

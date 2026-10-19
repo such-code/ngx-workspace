@@ -1,6 +1,6 @@
 import {Component, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
-import {FormField} from '@angular/forms/signals';
+
 import {
     applyRules,
     arrayOps,
@@ -21,7 +21,7 @@ let nextId = 1;
 const line = (): Line => ({id: nextId++, sku: '', qty: 1});
 
 @Component({
-    imports: [FormField, NgxForms, JsonPipe],
+    imports: [NgxForms, JsonPipe],
     providers: [
         provideRuleTemplates({
             Order: {
@@ -52,7 +52,7 @@ const line = (): Line => ({id: nextId++, sku: '', qty: 1});
                     <ngx-field-errors [field]="company.vat"/>
                 </fieldset>
             }
-            @for (item of form.fields.lines; track item().value().id; let i = $index) {
+            @for (item of form.fields.lines; track item; let i = $index) {
                 <div class="row g-2 mb-2">
                     <div class="col"><input class="form-control" placeholder="SKU" [formField]="item.sku" ngxFieldState>
                         <ngx-field-errors [field]="item.sku"/></div>

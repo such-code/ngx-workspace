@@ -1,12 +1,12 @@
 import {Component, inject, signal} from '@angular/core';
-import {FormField} from '@angular/forms/signals';
+
 import {applyRules, ngxForm, NgxForms, RequiredRule} from '@such-code/ngx-forms';
 import {FakeApi} from '../fake-api';
 
 type Scenario = 'ok' | 'field' | 'constraint' | 'network' | 'generic';
 
 @Component({
-    imports: [FormField, NgxForms],
+    imports: [NgxForms],
     template: `
         <h2>Server errors</h2>
         <p class="text-body-secondary">The form is disabled while the request runs. Field errors clear when you change that field.</p>

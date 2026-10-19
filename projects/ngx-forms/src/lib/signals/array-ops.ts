@@ -13,7 +13,8 @@ export interface ArrayOps<T> {
 
 /**
  * Immutable array updates for an array field. Signal Forms keeps item state (touched, dirty, async) by object
- * identity, so prefer objects with a stable id over primitives and track `@for` by that id.
+ * identity, so prefer objects over primitives. Track `@for` by the field itself (`track item`), never by field
+ * state such as `item().value().id`: removed items are orphaned and reading their state throws.
  */
 export function arrayOps<T>($field: FieldTree<Array<T>> | FieldTree<ReadonlyArray<T>>): ArrayOps<T> {
     const update = ($fn: ($items: Array<T>) => Array<T>): void => {

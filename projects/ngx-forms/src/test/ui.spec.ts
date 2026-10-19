@@ -1,10 +1,11 @@
-import {Component, signal} from '@angular/core';
+import {Component, ErrorHandler, signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {FormField} from '@angular/forms/signals';
-import {applyRules, ngxForm, NgxForms, normalizers, RequiredRule, ValidationIntl} from '@such-code/ngx-forms';
+
+import {applyEach} from '@angular/forms/signals';
+import {applyRules, arrayOps, FormField, ngxForm, NgxForms, normalizers, RequiredRule, ValidationIntl} from '@such-code/ngx-forms';
 
 @Component({
-    imports: [FormField, NgxForms],
+    imports: [NgxForms],
     template: `
         <form [ngxForm]="form" (ngxSubmitted)="result = $event">
             <input id="name" [formField]="form.fields.name" ngxFieldState>
@@ -102,5 +103,61 @@ describe('UI', () => {
         await fixture.whenStable();
         expect(cmp.model().nick).toBe('me');
         expect(nick.value).toBe('me');
+    });
+});
+
+@Component({
+    imports: [NgxForms],
+    template: `
+        <form [ngxForm]="form">
+            @for (item of form.fields.lines; track item; let i = $index) {
+                <div class="row">
+                    <input class="sku" [formField]="item.sku">
+                    <ngx-field-errors [field]="item.sku"/>
+                    <button type="button" class="remove" (click)="lines.remove(i)">×</button>
+                </div>
+            }
+            <button type="submit">Save</button>
+        </form>
+    `,
+})
+class TestArrayComponent {
+    public readonly model = signal({lines: [{id: 1, sku: ''}]});
+    public readonly form = ngxForm(this.model, p => applyEach(p.lines, $ => applyRules($.sku, [new RequiredRule()])), {
+        action: async () => undefined,
+    });
+    public readonly lines = arrayOps(this.form.fields.lines);
+}
+
+describe('UI arrays', () => {
+    it('removes a row after a failed submit', async () => {
+        const errors: Array<unknown> = [];
+        TestBed.configureTestingModule({providers: [{provide: ErrorHandler, useValue: {handleError: ($: unknown) => errors.push($)}}]});
+        const fixture = TestBed.createComponent(TestArrayComponent);
+        const el: HTMLElement = fixture.nativeElement;
+        const cmp = fixture.componentInstance;
+        await fixture.whenStable();
+
+        type(el.querySelector('.sku') as HTMLInputElement, 'A1');
+        cmp.lines.push({id: 2, sku: ''});
+        await fixture.whenStable();
+        type(el.querySelectorAll<HTMLInputElement>('.sku')[1], 'B2');
+        cmp.lines.push({id: 3, sku: ''});
+        await fixture.whenStable();
+
+        (el.querySelector('button[type=submit]') as HTMLButtonElement).click();
+        await fixture.whenStable();
+        expect(el.querySelectorAll('.row').length).toBe(3);
+        expect(el.querySelectorAll('ngx-field-errors[data-state-visible]').length).toBe(1);
+
+        el.querySelectorAll<HTMLButtonElement>('.remove')[1].click();
+        await fixture.whenStable();
+        expect(errors).toEqual([]);
+        expect(cmp.model().lines.map($ => $.sku)).toEqual(['A1', '']);
+        expect(Array.from(el.querySelectorAll<HTMLInputElement>('.sku')).map($ => $.value)).toEqual(['A1', '']);
+    });
+
+    it('re-exports FormField', () => {
+        expect(NgxForms).toContain(FormField);
     });
 });

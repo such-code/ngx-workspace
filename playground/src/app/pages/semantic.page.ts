@@ -1,9 +1,9 @@
 import {Component, signal} from '@angular/core';
-import {FormField} from '@angular/forms/signals';
+
 import {applyRules, MinLengthRule, ngxForm, NgxForms, RequiredRule, semantic} from '@such-code/ngx-forms';
 
 @Component({
-    imports: [FormField, NgxForms],
+    imports: [NgxForms],
     template: `
         <h2>Semantic (cross-field) validation</h2>
         <form [ngxForm]="form" [ngxFormAction]="save">

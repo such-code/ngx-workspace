@@ -1,6 +1,6 @@
 import {Component, model, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
-import {FormField, FormValueControl, transformedValue} from '@angular/forms/signals';
+import {FormValueControl, transformedValue} from '@angular/forms/signals';
 import {
     applyRules,
     MinOrEqualRule,
@@ -39,7 +39,7 @@ const regions: Record<string, ReadonlyArray<string>> = {
 };
 
 @Component({
-    imports: [FormField, NgxForms, JsonPipe, AmountInput],
+    imports: [NgxForms, JsonPipe, AmountInput],
     template: `
         <h2>Transforming input</h2>
         <form [ngxForm]="form" [ngxFormAction]="save">
