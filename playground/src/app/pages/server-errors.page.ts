@@ -9,17 +9,19 @@ type Scenario = 'ok' | 'field' | 'constraint' | 'network' | 'generic';
     imports: [NgxForms],
     template: `
         <h2>Server errors</h2>
-        <p class="text-body-secondary">The form is disabled while the request runs. Field errors clear when you change that field.</p>
+        <p class="text-body-secondary">The form is disabled while the request runs. Field errors clear when you change that field.
+            The constraint scenario makes age required with a minimum: the asterisk, <code>required</code> and <code>min</code>
+            attributes come from <code>ngxConstraints</code> and <code>form.isRequired()</code>.</p>
         <form [ngxForm]="form" [ngxFormAction]="save">
             <ngx-form-errors heading="Could not save"/>
             <div class="mb-3">
-                <label class="form-label" for="login">Login</label>
-                <input class="form-control" id="login" [formField]="form.fields.login" ngxFieldState>
+                <label class="form-label" for="login">Login @if (form.isRequired(form.fields.login)) {<span class="text-danger">*</span>}</label>
+                <input class="form-control" id="login" [formField]="form.fields.login" ngxFieldState ngxConstraints>
                 <ngx-field-errors [field]="form.fields.login"/>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="age">Age</label>
-                <input class="form-control" id="age" type="number" [formField]="form.fields.age" ngxFieldState>
+                <label class="form-label" for="age">Age @if (form.isRequired(form.fields.age)) {<span class="text-danger">*</span>}</label>
+                <input class="form-control" id="age" type="number" [formField]="form.fields.age" ngxFieldState ngxConstraints>
                 <ngx-field-errors [field]="form.fields.age"/>
             </div>
             <div class="mb-3">
@@ -63,6 +65,10 @@ export class ServerErrorsPage {
                     param: 'age',
                     message: 'You must be at least 18.',
                     constraint: {type: 'minOrEqual', limit: 18, message: 'You must be at least {{ limit }}.'},
+                }, {
+                    param: 'age',
+                    message: 'Age is required.',
+                    constraint: {type: 'required', message: 'Age is required.'},
                 }]);
             case 'network':
                 return this.api.networkError();

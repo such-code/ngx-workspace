@@ -124,9 +124,12 @@ The wire format is unchanged. Differences in how errors are applied:
 
 ## 6. Things that need a manual decision
 
-- **Dynamic rule metadata.** Rules added after the form exists (server constraints, `registry.merge()` later) produce
-  errors but do not set `required()` / `min()` metadata. Load templates before creating the form if your controls
-  show asterisks or use native constraints.
+- **Dynamic rule metadata.** Signal Forms registers metadata only while the schema is compiled, so rules added after
+  the form exists (server constraints, `registry.merge()` later) produce errors but do not set `required()` / `min()`
+  metadata. Use `form.isRequired(field)` / `form.hasRule(field, kind)` / `form.constraints(field)` instead of field
+  metadata, and add `ngxConstraints` to the control for `required`, `aria-required` and native limits. Custom
+  `FormValueControl` components still receive their `required` input from metadata only; prefetch templates when
+  they must see late rules.
 - **Hidden and disabled fields** produce no errors in Signal Forms, including server errors; errors reappear when the
   field is shown or enabled again.
 - **Array items**: Signal Forms keeps item state by object identity. Write `@for (item of form.fields.items; track item)`:

@@ -23,12 +23,13 @@ import {isObservable, lastValueFrom, Observable} from 'rxjs';
 import {RuleRegistry, RuleTemplate} from '../core/registry';
 import {mergeRules} from '../core/registry';
 import {ParsedServerError, parseServerError, ParseServerErrorOptions} from '../core/server-error';
-import {ruleError} from '../core/rules';
+import {RuleMetadata, ruleError, ValidationRule} from '../core/rules';
 import {normalizePath, splitPath, valueAt} from '../core/path';
 import {bindTemplate} from './rules';
 import {bindErrorStore, FieldErrorStore} from './error-store';
 import {runInSchemaContext} from './schema-context';
 import {AnyField, AnyReadonlyField} from './field-tree';
+import {constraintsOf, hasRule, rulesOf} from './rule-lookup';
 
 /** Default rule kinds skipped by every `ngxForm()` below this provider (was `VALIDATION_SKIP_DEFAULT_RULES`). */
 export const NGX_FORMS_SKIP_RULES = new InjectionToken<ReadonlyArray<string>>('NGX_FORMS_SKIP_RULES');
@@ -86,6 +87,24 @@ export interface NgxForm<T> {
 
     /** Dotted path of a field relative to the form root. */
     pathOf($field: AnyReadonlyField): string;
+
+    /**
+     * Rules that currently apply to a field, including ones added after the form was created (server constraints,
+     * `registry.merge()`, `addRules()`), which Signal Forms metadata does not carry. Reactive.
+     */
+    rules($field: AnyReadonlyField): ReadonlyArray<ValidationRule>;
+
+    /** Whether a rule of `$kind` (rule name, e.g. `'required'`) currently applies to a field. Reactive. */
+    hasRule($field: AnyReadonlyField, $kind: string): boolean;
+
+    /** Combined `required` / length / limit / pattern constraints of `rules($field)`. Reactive. */
+    constraints($field: AnyReadonlyField): RuleMetadata;
+
+    /**
+     * Whether a field is required by metadata (any `required` validator) or by a rule added later. Use it for the
+     * asterisk: `@if (form.isRequired(form.fields.email)) { * }`. Reactive.
+     */
+    isRequired($field: AnyReadonlyField): boolean;
 
     /** Resets values (optional), touched/dirty state and pushed errors. */
     reset($value?: T): void;
@@ -239,6 +258,11 @@ export function ngxForm<T>(
             const fieldName = untracked(() => $field().name());
             return fieldName === name ? '' : fieldName.startsWith(name + '.') ? fieldName.substring(name.length + 1) : fieldName;
         },
+
+        rules: $field => rulesOf(anyFields, $field),
+        hasRule: ($field, $kind) => hasRule(anyFields, $field, $kind),
+        constraints: $field => constraintsOf(anyFields, $field),
+        isRequired: $field => $field().required() || !!constraintsOf(anyFields, $field).required,
 
         reset($value?: T): void {
             untracked(() => anyFields().reset($value));

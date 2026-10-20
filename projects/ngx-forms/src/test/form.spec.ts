@@ -197,6 +197,49 @@ describe('ngxForm: server errors and submit', () => {
     });
 });
 
+describe('ngxForm: rule lookup', () => {
+    it('sees schema, template and late rules, which metadata does not', () => {
+        TestBed.configureTestingModule({providers: [provideRuleTemplates({Lookup: {name: [new MinLengthRule(2)]}})]});
+        const {form} = create({name: '', email: '', lines: [{sku: ''}]}, p => applyRules(p.email, [new RequiredRule()]), {name: 'Lookup'});
+
+        expect(form.hasRule(form.fields.email, 'required')).toBe(true);
+        expect(form.rules(form.fields.name).map($ => $.name)).toEqual(['minLength']);
+        expect(form.hasRule(form.fields.name, 'required')).toBe(false);
+
+        // Late rules: errors and lookup, but no metadata.
+        TestBed.inject(RuleRegistry).merge('Lookup', 'name', [new RequiredRule()]);
+        form.addRules('lines.*.sku', [new RequiredRule()]);
+        expect(form.fields.name().metadata(REQUIRED)?.()).toBeFalsy();
+        expect(form.fields.name().required()).toBe(false);
+        expect(form.hasRule(form.fields.name, 'required')).toBe(true);
+        expect(form.hasRule(form.fields.lines[0].sku, 'required')).toBe(true);
+        expect(form.constraints(form.fields.name)).toEqual({required: true, minLength: 2});
+        expect(form.isRequired(form.fields.name)).toBe(true);
+        expect(form.isRequired(form.fields.email)).toBe(true);
+    });
+
+    it('leaves out skipped and removed rules', () => {
+        const {form} = create({name: '', nick: ''}, p => skipRules(p.nick, ['required']), {name: 'LookupSkip'});
+        form.addRules('name', [new RequiredRule()]);
+        form.addRules('nick', [new RequiredRule()]);
+        expect(form.hasRule(form.fields.name, 'required')).toBe(true);
+        expect(form.hasRule(form.fields.nick, 'required')).toBe(false);
+
+        TestBed.inject(RuleRegistry).set('LookupSkip', {name: [new MinLengthRule(3)]});
+        expect(form.rules(form.fields.name).map($ => $.name).sort()).toEqual(['minLength', 'required']);
+        TestBed.inject(RuleRegistry).remove('LookupSkip');
+        expect(form.rules(form.fields.name).map($ => $.name)).toEqual(['required']);
+    });
+
+    it('resolves templates bound to a sub path', () => {
+        TestBed.configureTestingModule({providers: [provideRuleTemplates({Company: {}})]});
+        const {form} = create({company: {title: ''}}, p => bindTemplate(p.company, 'Company'), {template: false});
+        expect(form.hasRule(form.fields.company.title, 'required')).toBe(false);
+        TestBed.inject(RuleRegistry).merge('Company', 'title', [new RequiredRule()]);
+        expect(form.hasRule(form.fields.company.title, 'required')).toBe(true);
+    });
+});
+
 describe('wizard', () => {
     type Signup = { account: { email: string }, profile: { name: string, paid: boolean }, billing: { card: string }, terms: boolean };
 

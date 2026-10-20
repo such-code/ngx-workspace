@@ -2,7 +2,18 @@ import {Component, ErrorHandler, signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 
 import {applyEach} from '@angular/forms/signals';
-import {applyRules, arrayOps, FormField, ngxForm, NgxForms, normalizers, RequiredRule, ValidationIntl} from '@such-code/ngx-forms';
+import {
+    applyRules,
+    arrayOps,
+    FormField,
+    MaxLengthRule,
+    MinOrEqualRule,
+    ngxForm,
+    NgxForms,
+    normalizers,
+    RequiredRule,
+    ValidationIntl,
+} from '@such-code/ngx-forms';
 
 @Component({
     imports: [NgxForms],
@@ -128,6 +139,47 @@ class TestArrayComponent {
     });
     public readonly lines = arrayOps(this.form.fields.lines);
 }
+
+@Component({
+    imports: [NgxForms],
+    template: `
+        <form [ngxForm]="form">
+            <label for="email">Email @if (form.isRequired(form.fields.email)) {<span class="mark">*</span>}</label>
+            <input id="email" [formField]="form.fields.email" ngxConstraints>
+            <input id="code" [formField]="form.fields.code" ngxConstraints>
+            <input id="age" type="number" [formField]="form.fields.age" ngxConstraints>
+        </form>
+    `,
+})
+class TestConstraintsComponent {
+    public readonly model = signal({email: '', code: '', age: 0});
+    public readonly form = ngxForm(this.model, p => applyRules(p.code, [new RequiredRule()]), {template: false});
+}
+
+describe('UI constraints', () => {
+    it('mirrors late rules as required / aria-required and native limits', async () => {
+        const fixture = TestBed.createComponent(TestConstraintsComponent);
+        const el: HTMLElement = fixture.nativeElement;
+        const q = (s: string) => el.querySelector(s) as HTMLInputElement;
+        await fixture.whenStable();
+
+        expect(q('#email').hasAttribute('required')).toBe(false);
+        expect(q('#email').hasAttribute('aria-required')).toBe(false);
+        expect(q('.mark')).toBeNull();
+        // From metadata: `[formField]` sets required, the directive adds aria-required.
+        expect(q('#code').hasAttribute('required')).toBe(true);
+        expect(q('#code').getAttribute('aria-required')).toBe('true');
+
+        fixture.componentInstance.form.addRules('email', [new RequiredRule(), new MaxLengthRule(40)]);
+        fixture.componentInstance.form.addRules('age', [new MinOrEqualRule(18)]);
+        await fixture.whenStable();
+        expect(q('#email').hasAttribute('required')).toBe(true);
+        expect(q('#email').getAttribute('aria-required')).toBe('true');
+        expect(q('#email').getAttribute('maxlength')).toBe('40');
+        expect(q('#age').getAttribute('min')).toBe('18');
+        expect(q('.mark')).not.toBeNull();
+    });
+});
 
 describe('UI arrays', () => {
     it('removes a row after a failed submit', async () => {

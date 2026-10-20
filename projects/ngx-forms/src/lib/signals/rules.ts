@@ -22,6 +22,7 @@ import {expandPath, GLOB_SEGMENT, PathSegments, splitPath, valueAt} from '../cor
 import {SKIP_RULES} from './metadata';
 import {childField} from './field-tree';
 import {currentSchemaContext, runInSchemaContext} from './schema-context';
+import {RULES, TEMPLATE_BINDINGS} from './rule-lookup';
 
 export interface ApplyRulesOptions {
     /** Rule kinds to skip in addition to `skipRules()` metadata of the field. */
@@ -68,6 +69,8 @@ export function applyRules<T>($path: SchemaPath<T>, $rules: ReadonlyArray<Valida
             }
             return rule.check(ctx.value(), createRuleContext(rootPath, ctx)) ?? undefined;
         });
+        // Lets `rulesOf()` / `form.hasRule()` see the rule, whether or not it has Signal Forms metadata.
+        metadata($path as SchemaPath<any>, RULES, ctx => enabled(ctx) ? rule : undefined);
 
         const meta = rule.metadata();
         if (!meta) {
@@ -171,6 +174,9 @@ export function bindTemplate($path: SchemaPath<any>, $source: string | Signal<Ru
 
     const snapshot = $options.mode === 'dynamic' ? undefined : untracked(template);
     const compiled = snapshot ? compileTemplate($path, snapshot, template, $options.skipRules ?? []) : new Map<string, Set<ValidationRule>>();
+
+    const binding = {template, compiled, skipRules: skip};
+    metadata($path, TEMPLATE_BINDINGS, () => binding);
 
     const dynamic = computed(() => {
         const current = template() ?? {};

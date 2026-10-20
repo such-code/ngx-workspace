@@ -3,6 +3,7 @@ import {NgxFormDirective} from './form.directive';
 import {NgxFieldErrorsComponent} from './field-errors.component';
 import {NgxFormErrorsComponent} from './form-errors.component';
 import {NgxFieldStateDirective} from './field-state.directive';
+import {NgxConstraintsDirective} from './constraints.directive';
 import {NgxNormalizeDirective} from './normalize.directive';
 import {NgxErrorMessagePipe} from './error-message.pipe';
 
@@ -13,6 +14,7 @@ export const NgxForms = [
     NgxFieldErrorsComponent,
     NgxFormErrorsComponent,
     NgxFieldStateDirective,
+    NgxConstraintsDirective,
     NgxNormalizeDirective,
     NgxErrorMessagePipe,
 ] as const;

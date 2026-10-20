@@ -22,6 +22,7 @@ export * from './lib/signals/metadata';
 export * from './lib/signals/array-ops';
 export * from './lib/signals/reactions';
 export * from './lib/signals/wizard';
+export {RULES, rulesOf, hasRule, constraintsOf} from './lib/signals/rule-lookup';
 export {childField, walkFields} from './lib/signals/field-tree';
 export type {AnyField, AnyReadonlyField} from './lib/signals/field-tree';
 
@@ -33,6 +34,7 @@ export * from './lib/ui/form.directive';
 export * from './lib/ui/field-errors.component';
 export * from './lib/ui/form-errors.component';
 export * from './lib/ui/field-state.directive';
+export * from './lib/ui/constraints.directive';
 export * from './lib/ui/normalize.directive';
 export * from './lib/ui/error-message.pipe';
 export * from './lib/ui/index';

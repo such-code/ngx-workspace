@@ -93,7 +93,28 @@ form = ngxForm(model, p => bindTemplate(p.billing, 'Address'));
 
 Rules known when the form is created become per-field validators with metadata. Rules added later (registry
 updates, server constraints) are evaluated by one tree validator: they show errors immediately, but do not set
-metadata such as `required()`. Prefetch templates (e.g. `RuleRegistry.load()` in a route resolver) when that matters.
+metadata such as `required()`.
+
+To see every rule, including late ones, ask the form instead of the metadata:
+
+```ts
+form.rules(form.fields.email);               // ValidationRule[] that currently apply (skipped rules left out)
+form.hasRule(form.fields.email, 'required'); // by rule name
+form.constraints(form.fields.age);           // {required, minLength, maxLength, min, max, pattern}
+form.isRequired(form.fields.email);          // metadata required() or a required rule
+```
+
+`ngxConstraints` applies the same to a control: `required`, `aria-required` and native `minlength` / `maxlength` /
+`min` / `max` for constraints that are not in metadata (the rest stays with `[formField]`):
+
+```html
+<label for="email">Email @if (form.isRequired(form.fields.email)) { * }</label>
+<input id="email" [formField]="form.fields.email" ngxConstraints>
+```
+
+It uses the closest `form[ngxForm]`, or `[ngxConstraints]="form"`. Custom `FormValueControl` components get their
+`required` input from metadata only; prefetch templates (e.g. `RuleRegistry.load()` in a route resolver) when they
+must see late rules.
 
 ## Server errors
 
