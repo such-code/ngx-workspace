@@ -6,9 +6,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve playground",
-    "build": "ng build ngx-forms",
-    "watch": "ng build ngx-forms --watch --configuration development",
-    "test": "ng test ngx-forms --watch=false",
+    "build": "ng build ngx-forms && ng build ngx-forms-validation",
+    "watch": "ng build ngx-forms-validation --watch --configuration development",
+    "test": "ng test ngx-forms --watch=false && ng test ngx-forms-validation --watch=false",
     "build:playground": "ng build playground"
   },
   "private": true,

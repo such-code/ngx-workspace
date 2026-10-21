@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {SerializedValidationErrorDetails} from '@such-code/ngx-forms';
+import {SerializedValidationErrorDetails} from '@such-code/ngx-forms-validation';
 
 const delay = ($ms: number) => new Promise($resolve => setTimeout($resolve, $ms));
 

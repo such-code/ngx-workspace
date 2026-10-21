@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, computed, inject, input} from '@angular/core';
-import {AnyReadonlyField} from '../signals/field-tree';
+import {AnyField} from '../signals/field-tree';
 import {ValidationIntl} from '../core/intl';
 
 export type ErrorVisibility = 'touched' | 'dirty' | 'touched-or-dirty' | 'always';
@@ -22,7 +22,7 @@ export type ErrorVisibility = 'touched' | 'dirty' | 'touched-or-dirty' | 'always
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NgxFieldErrorsComponent {
-    public readonly field = input.required<AnyReadonlyField>();
+    public readonly field = input.required<AnyField>();
     public readonly showWhen = input<ErrorVisibility>('touched-or-dirty');
     /** Show only the first error. */
     public readonly first = input<boolean>(false);

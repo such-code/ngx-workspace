@@ -1,7 +1,6 @@
-import {SchemaPath, validateTree, ValidationError} from '@angular/forms/signals';
+import {SchemaPath, TargetedValidationError, validateTree} from '@such-code/ngx-forms';
 import {ExternalValidatorResult, isValidationRuleError, ruleError, ValidationRuleError} from '../core/rules';
 import {splitPath, valueAt} from '../core/path';
-import {childField} from './field-tree';
 
 export type SemanticError = string | ValidationRuleError | ExternalValidatorResult;
 
@@ -21,17 +20,12 @@ export function semantic<T>($path: SchemaPath<T>, $validator: SemanticValidator<
         if (!result) {
             return undefined;
         }
-        const errors: Array<ValidationError.WithOptionalFieldTree> = [];
+        const errors: Array<TargetedValidationError> = [];
         for (const [path, raw] of Object.entries(result)) {
-            const segments = splitPath(path);
-            const target = segments.length === 0 ? ctx.fieldTree : childField(ctx.fieldTree, segments);
-            if (!target) {
-                continue;
-            }
-            const fieldValue = valueAt(value, segments);
+            const fieldValue = valueAt(value, splitPath(path));
             const list: ReadonlyArray<SemanticError> = Array.isArray(raw) ? raw : [raw as SemanticError];
             for (const item of list) {
-                errors.push({...toRuleError(item, $kind, fieldValue), fieldTree: target});
+                errors.push({...toRuleError(item, $kind, fieldValue), path});
             }
         }
         return errors;

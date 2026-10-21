@@ -1,9 +1,10 @@
 # @such-code/ngx-forms
 
-Validation templates, server errors, submit handling, wizards and input correction for
-[Angular Signal Forms](https://angular.dev/guide/forms/signals) (`@angular/forms/signals`, Angular 22+).
-
-Successor of `@such-code/ngx-form-validation` (template-driven / reactive forms). See [MIGRATION.md](MIGRATION.md).
+Signal based forms for Angular 22+. The model is a `WritableSignal`, fields are derived from it, and everything a
+form knows (values, errors, validity, metadata) is a signal. The API follows Angular Signal Forms
+(`@angular/forms/signals`), so schemas read the same, but the engine is written from scratch to remove the issues
+that Signal Forms has today. It does not depend on `@angular/forms`; classic forms (`FormGroup`, `ngModel`,
+`ControlValueAccessor`) are not supported.
 
 ```bash
 npm i @such-code/ngx-forms
@@ -12,148 +13,152 @@ npm i @such-code/ngx-forms
 ## Quick start
 
 ```ts
-import {Component, inject, signal} from '@angular/core';
+import {Component, signal} from '@angular/core';
+import {applyEach, email, form, NgxField, required, submit, trackBy} from '@such-code/ngx-forms';
 
-import {applyRules, EmailRule, ngxForm, NgxForms, RequiredRule} from '@such-code/ngx-forms';
+type Line = { id: number, sku: string };
 
 @Component({
-    imports: [NgxForms],
+    imports: [NgxField],
     template: `
-        <form [ngxForm]="form">
-            <ngx-form-errors heading="Could not save"/>
-            <input [formField]="form.fields.email" ngxFieldState>
-            <ngx-field-errors [field]="form.fields.email"/>
-            <button type="submit" [disabled]="form.submitting()">Save</button>
+        <form (submit)="$event.preventDefault(); save()">
+            <input [ngxField]="f.email">
+            @for (line of f.lines; track line().value().id) {
+                <input [ngxField]="line.sku">
+            }
+            <button [disabled]="f().submitting()">Save</button>
         </form>
     `,
 })
-export class ContactComponent {
-    private readonly api = inject(ContactApi);
-    protected readonly model = signal({email: ''});
-    protected readonly form = ngxForm(this.model, p => {
-        applyRules(p.email, [new RequiredRule(), new EmailRule()]);
-    }, {
-        action: $value => this.api.save($value), // Promise or Observable
+export class OrderComponent {
+    protected readonly model = signal({email: '', lines: [] as Array<Line>});
+    protected readonly f = form(this.model, p => {
+        required(p.email);
+        email(p.email);
+        trackBy(p.lines, $ => $.id);
+        applyEach(p.lines, line => required(line.sku));
     });
+
+    protected save() {
+        // Errors returned by the action land on their fields and clear when those fields change.
+        return submit(this.f, async $value => {
+            const response = await api.save($value);
+            return response.errors; // [{kind: 'taken', path: 'email', message: '...'}]
+        });
+    }
 }
 ```
 
-`form.fields` is a regular Signal Forms `FieldTree`: everything from `@angular/forms/signals` (`required()`,
-`validate()`, `hidden()`, `applyEach()`, `validateAsync()`, custom controls, ...) works in the schema function.
+## What is different from Angular Signal Forms
 
-## What it adds to Signal Forms
-
-| Need | API |
+| Signal Forms (22.2) | Here |
 |---|---|
-| Rules as data, reusable by name, application-wide | `provideRuleTemplates({Name: {'path': rules}})`, `ngxForm(model, schema, {name: 'Name'})`, `bindTemplate(path, 'Name')` |
-| Templates prefetched or generated from server responses, cached | `RuleRegistry.load()`, `.merge()`, `.export()` / `.import()` |
-| Server validation errors and constraints | thrown by the submit action, applied automatically; `form.applyServerError(error)` |
-| Generic / connection errors | `form.errors.formErrors()`, `<ngx-form-errors>` |
-| Disable form while submitting | automatic (`disableWhileSubmitting: false` to opt out) |
-| Cross-field validation with the v21 result shape | `semantic(path, value => ({'relative.path': 'message'}))` |
-| Dynamic arrays and groups | `arrayOps(form.fields.items)` with `@for (item of form.fields.items; track item)`; update the model for groups |
-| Structure that follows input | `reaction(model, select, apply)`; Signal Forms `hidden()` / `applyWhen()` |
-| Multistep wizard on one model | `wizard(form, steps)`, `step(path, id)` |
-| Correct input while typing / on blur | `[ngxNormalize]`, `normalizers`; Signal Forms `transformedValue()` for parse/format |
-| Translated messages | `ValidationIntl.update()`, `ngxErrorMessage` pipe |
+| A schema is compiled once; rules (and metadata such as `required`) can not be added after `form()` | `applySchema(field, schema)` adds rules at any time and returns a function removing them; `applyDynamic(path, () => schema)` follows a signal. Metadata updates too, so late rules set `required`/`min`/... on fields and controls |
+| Pushed errors only through `submit()` (`submissionErrors` is private, one policy) | Every field has error sources: `field().setErrors(source, errors, {stale, forValue, whenSkipped})`, `clearErrors(source)`, `setPending(source)`. Validators never remove pushed errors, pushing never removes validator errors |
+| No staleness rules for pushed errors | `stale: 'on-change'` (default: dropped when the field changes and never brought back), `'on-submit'`, `'never'`; `forValue` drops answers for values the user already changed |
+| Hidden / disabled fields swallow pushed errors | `whenSkipped: true` keeps them visible; otherwise they are kept and reappear when the field is shown or enabled |
+| Tree validator errors are broadcast to every descendant and filtered (O(depth × errors)) | Errors are grouped by target once; a field reads only the entries addressed to it |
+| All validators of a field re-run when any dependency changes | One computed per rule; a changed dependency re-runs only that rule |
+| An ancestor's pending async check marks every descendant pending | `pending` aggregates upwards only |
+| Async validators wait until the whole subtree is sync-valid | `runWhen: 'valid'` (default: the field's own sync errors), `'treeValid'` or `'always'` |
+| Async validators are `Resource` based and tied to `params` | `run(params, {signal})` returns a Promise or an Observable; streams apply every emission; built-in `debounce`; results for old params are never shown |
+| Submit runs while async validation is pending (default `'pending'`) | `submit()` waits for pending validation by default (`awaitPending: false` to opt out) |
+| An exception from the submit action propagates | `onError(error, field)` maps it to field errors; the submit reports `false` |
+| Disabling the form during submit also switches validation off | Submit *locks* bound controls (`locked()`), validation keeps running; `lockWhileSubmitting: false` to opt out |
+| Array identity: a hidden `Symbol` is written into your objects; primitives by index | Nothing is written into the data. `trackBy(path, fn)` keys items (survives refetching); otherwise objects by reference and items written through their field keep their field |
+| Reading state of a removed array item throws (`NG01904`), so `@for (...; track item().value().id)` breaks after removals | Removed fields are detached: state stays readable, writes and touches are ignored with a dev warning, async work is aborted |
+| Two values per field (`controlValue` vs `value`) to support debounce | One value. Debounce lives in the binding: typed text is committed after a delay or on blur |
+| No hook to correct typed text | `[ngxNormalize]` rewrites text while typing or on blur, caret preserved |
+| Custom controls receive state through inputs set by the compiler | Custom controls call `injectFieldControl()`: value, state, `setValue()`, `touch()`, `setParseErrors()` |
+| Field paths only through `name()` | `field().path()`, `pathKey()`, `fieldAt(root, 'lines.0.sku')` |
 
-## Rules
+## API
 
-Rules are plain classes with `check(value, context)`; the error they return is a Signal Forms `ValidationError`
-(`kind`, `message`) that also keeps `rawMessage` and `params` for translation.
+### Form
 
-`RequiredRule`, `NotEmptyRule`, `SizeRule`, `MinLengthRule`, `MaxLengthRule`, `MinRule`, `MinOrEqualRule`, `MaxRule`,
-`MaxOrEqualRule`, `PatternRule`, `EmailRule`, `DigitsRule`, `PhoneRule`, `AgeRule`, `BooleanRule`, `AllowedValueRule`,
-`IncorrectValueRule`, `SameValueRule`, `ExternalValidatorRule` (wraps a function).
+- `form(model, schema?, {name?, injector?, submission?, lockWhileSubmitting?})` returns the root `FieldTree`.
+  `f.address.street` is a child field, `f.address.street()` its state. Array fields are iterable and indexable.
+- `applySchema(field, schema)` adds rules later (also to one array item; they follow the item). Returns a remover.
+- `fieldAt(field, path)`, `isFieldTree(value)`, `focusFirstInvalid(field)`.
 
-- `applyRules(path, rules)` registers rules on a schema path. Rules that declare metadata (`required`, `minLength`,
-  `maxLength`, `min`, `max`, `pattern`) also set it on the field, so `field().required()` and custom controls see it.
-- `skipRules(path, ['required'])` turns rules off for one path; `ngxForm(..., {skipRules})` and the
-  `NGX_FORMS_SKIP_RULES` token for a whole form or subtree.
-- Custom rules: extend `ValidationRuleWithMessage`, implement `toConstraint()` and register a factory with
-  `registerRuleFactory(type, factory)` so the server can send them and templates can be serialized.
+### Schema rules
 
-## Templates
+`validate`, `validateTree` (errors target other fields with `field` or a relative `path`), `validateAsync`,
+`required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `email`, `disabled`, `hidden`, `readonly`,
+`metadata` / `createMetadataKey`, `debounce`, `trackBy`, `apply`, `applyEach`, `applyWhen`, `applyWhenValue`,
+`applyDynamic`, `schema`.
+
+Rule functions receive a context: `value`, `state`, `field`, `key`, `index`, `valueOf(path)`, `stateOf(path)`,
+`fieldOf(path)` (`*` segments resolve to the current item).
+
+Built-in errors use Signal Forms kinds: `required`, `min` (`{min}`), `max`, `minLength`, `maxLength`, `pattern`,
+`email`, plus `parse` from controls and `asyncError` for failed async checks without `onError`.
+
+### Field state
+
+`value` (writable), `key`, `path`, `pathKey`, `name`, `attached`, `errors`, `errorSummary`, `valid`, `invalid`,
+`pending`, `touched`, `dirty`, `disabled`, `disabledReasons`, `hidden`, `readonly`, `submitting`, `locked`,
+`required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `metadata(key)`, `getError(kind)`,
+`markAsTouched({skipDescendants})`, `markAsDirty()`, `reset(value?)`, `setErrors(source, errors, options)`,
+`clearErrors(source?, {deep})`, `setPending(source, pending)`, `reloadValidation()`, `focus()`.
+
+Every error carries `field` (the field it belongs to) and `source` (`validator`, `tree`, `async`, `parse`,
+`submit` or the name passed to `setErrors()`).
+
+### Submit
 
 ```ts
-// app.config.ts, or providers of a route/component: a child template extends the parent one,
-// paths defined in the child replace the parent's rules for those paths
-provideRuleTemplates({
-    Signup: {
-        'email': [new RequiredRule(), new EmailRule()],
-        'addresses.*.city': [new RequiredRule()],      // * = every array item / object key
-    },
+submit(field, {
+    action: (value, field) => errors | Promise<errors> | Observable<unknown>,
+    awaitPending: true,      // wait for async validation
+    ignoreValidators: false, // run even when invalid
+    markAsTouched: true,
+    onInvalid: field => ..., // default: focus the first invalid control
+    onError: (error, field) => errors, // default: rethrow
 });
-
-// component
-form = ngxForm(model, null, {name: 'Signup'});         // binds the "Signup" template
-// or for a part of a form:
-form = ngxForm(model, p => bindTemplate(p.billing, 'Address'));
 ```
 
-Rules known when the form is created become per-field validators with metadata. Rules added later (registry
-updates, server constraints) are evaluated by one tree validator: they show errors immediately, but do not set
-metadata such as `required()`.
+Returns `true` when the action ran and reported no errors. A second submit of the same field (or a descendant)
+while one runs returns `false`. Errors of the previous submit are cleared first.
 
-To see every rule, including late ones, ask the form instead of the metadata:
+### Binding
+
+`[ngxField]` binds native `input` (text-like, number, range, date-like, checkbox, radio, file), `textarea` and
+`select` (single and multiple). It writes the value and `name`, `disabled`, `readonly`, `required`,
+`aria-required`, `min`/`max` and `minlength`/`maxlength`, all reactive. Bad numbers and dates become `parse` errors
+and leave the model untouched. Leaving the control marks the field touched.
+
+Custom controls:
 
 ```ts
-form.rules(form.fields.email);               // ValidationRule[] that currently apply (skipped rules left out)
-form.hasRule(form.fields.email, 'required'); // by rule name
-form.constraints(form.fields.age);           // {required, minLength, maxLength, min, max, pattern}
-form.isRequired(form.fields.email);          // metadata required() or a required rule
+@Component({
+    selector: 'app-amount',
+    template: `<input [value]="text()" (input)="text.set($any($event.target).value)" (blur)="control.touch()"
+                      [disabled]="control.locked()">`,
+})
+export class AmountControl {
+    protected readonly control = injectFieldControl<number | null>();
+    protected readonly text = transformedValue(this.control, {
+        parse: $ => $ === '' ? {value: null} : isNaN(+$) ? {error: {kind: 'parse'}} : {value: +$},
+        format: $ => $ === null ? '' : String($),
+    });
+}
+// <app-amount [ngxField]="f.amount"/>
 ```
 
-`ngxConstraints` applies the same to a control: `required`, `aria-required` and native `minlength` / `maxlength` /
-`min` / `max` for constraints that are not in metadata (the rest stays with `[formField]`):
+`arrayOps(field)` gives `push`, `insert`, `remove`, `move`, `replace` and `clear` as immutable model updates.
 
-```html
-<label for="email">Email @if (form.isRequired(form.fields.email)) { * }</label>
-<input id="email" [formField]="form.fields.email" ngxConstraints>
-```
+## Moving from `@angular/forms/signals`
 
-It uses the closest `form[ngxForm]`, or `[ngxConstraints]="form"`. Custom `FormValueControl` components get their
-`required` input from metadata only; prefetch templates (e.g. `RuleRegistry.load()` in a route resolver) when they
-must see late rules.
-
-## Server errors
-
-The submit action may throw anything; `parseServerError()` understands the v21 payload
-(`{message?, details: [{param, message} | {param, constraint, message?} | {param, existingConstraint}]}`), Angular
-`HttpErrorResponse` (status `0` = network error) and plain `Error`s.
-
-- `{param, message}` → error on that field, removed as soon as the field value changes;
-- `{param, constraint}` → rule; with `constraint.context` it is merged into that application-wide template,
-  otherwise it is added to this form only (`form.localTemplate`);
-- anything else → `form.errors.formErrors()`.
-
-Strip backend prefixes with `ngxForm(model, schema, {serverErrors: {pathPrefixes: ['body']}})`.
-
-Push errors yourself (sockets, other forms):
-
-```ts
-form.errors.push('user.name', 'socket', ['Somebody took this name'], {stale: 'on-change'});
-form.errors.clear('socket');
-```
-
-## Wizard
-
-```ts
-form = ngxForm(model, p => { /* rules for all steps */ });
-steps = wizard(this.form, [
-    {id: 'account', field: f => f.account},
-    {id: 'billing', field: f => f.billing, when: () => this.model().plan === 'paid'},
-    {id: 'confirm', tagged: true},                        // fields tagged with step(p.terms, 'confirm')
-]);
-// steps.current(), steps.next(), steps.previous(), steps.goTo(id), steps.isValid(id), steps.submit(action)
-```
-
-Steps that are not rendered are still validated (validity comes from the model). Hide fields of skipped steps
-with Signal Forms `hidden()` so they do not block the final submit.
-
-## Input correction
-
-- `[ngxNormalize]="fn"` on a native input rewrites text while typing (caret preserved); `ngxNormalizeOn="blur"`
-  applies it when the field loses focus. `normalizers.trim | upper | lower | digits | collapseSpaces | group(n)`.
-- Parse/format (text ↔ number/date) belongs to the control: use Signal Forms `transformedValue()`.
-- `reaction(model, m => m.country, (_, m) => ({...m, region: ''}))` updates other parts of the model.
+| Signal Forms | Here |
+|---|---|
+| `[formField]="f.x"`, `FormField` | `[ngxField]="f.x"`, `NgxField` |
+| `FormValueControl` with `value = model()` | `injectFieldControl()` in the control |
+| `transformedValue(this.value, ...)` | `transformedValue(injectFieldControl(), ...)` |
+| `disabled(p, {when})`, `hidden(p, {when})` | `disabled(p, ctx => ...)`, `hidden(p, ctx => ...)` |
+| `validateAsync(p, {params, factory, onSuccess})` | `validateAsync(p, {params, run, onSuccess})` |
+| `submit(f, {action, ignoreValidators: 'pending'})` | `submit(f, {action, awaitPending: false})` |
+| `createMetadataKey(MetadataReducer.list())` | `createMetadataKey(name, MetadataReducers.list())` |
+| `field().metadata(KEY)?.()` | `field().metadata(KEY)()` |
+| `MIN_NUMBER` / `MIN` | `MIN` (numbers) |
+| `track item` required for arrays | any track expression works |

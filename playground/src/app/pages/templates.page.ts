@@ -1,7 +1,7 @@
 import {Component, inject, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
 
-import {MinLengthRule, ngxForm, NgxForms, provideRuleTemplates, RequiredRule, RuleRegistry} from '@such-code/ngx-forms';
+import {MinLengthRule, ngxForm, NgxForms, provideRuleTemplates, RequiredRule, RuleRegistry} from '@such-code/ngx-forms-validation';
 
 /**
  * Named templates: `Contact` comes from app config, `Contact` is extended here for this page only,
@@ -23,22 +23,22 @@ import {MinLengthRule, ngxForm, NgxForms, provideRuleTemplates, RequiredRule, Ru
         <form [ngxForm]="form" [ngxFormAction]="save" (ngxSubmitted)="result.set($event)">
             <div class="mb-3">
                 <label class="form-label" for="name">Name @if (form.fields.name().required()) {*}</label>
-                <input class="form-control" id="name" [formField]="form.fields.name" ngxFieldState>
+                <input class="form-control" id="name" [ngxField]="form.fields.name" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.name"/>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="email">E-mail @if (form.fields.email().required()) {*}</label>
-                <input class="form-control" id="email" [formField]="form.fields.email" ngxFieldState>
+                <input class="form-control" id="email" [ngxField]="form.fields.email" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.email"/>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="city">City @if (form.fields.address.city().required()) {*}</label>
-                <input class="form-control" id="city" [formField]="form.fields.address.city" ngxFieldState>
+                <input class="form-control" id="city" [ngxField]="form.fields.address.city" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.address.city"/>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="zip">ZIP @if (form.fields.address.zip().required()) {*}</label>
-                <input class="form-control" id="zip" [formField]="form.fields.address.zip" ngxFieldState>
+                <input class="form-control" id="zip" [ngxField]="form.fields.address.zip" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.address.zip"/>
             </div>
             <button type="submit" class="btn btn-primary me-2">Submit</button>

@@ -1,6 +1,6 @@
 import {Component, signal} from '@angular/core';
 
-import {applyRules, MinLengthRule, ngxForm, NgxForms, RequiredRule, semantic} from '@such-code/ngx-forms';
+import {applyRules, MinLengthRule, ngxForm, NgxForms, RequiredRule, semantic} from '@such-code/ngx-forms-validation';
 
 @Component({
     imports: [NgxForms],
@@ -9,18 +9,18 @@ import {applyRules, MinLengthRule, ngxForm, NgxForms, RequiredRule, semantic} fr
         <form [ngxForm]="form" [ngxFormAction]="save">
             <div class="mb-3">
                 <label class="form-label" for="password">Password</label>
-                <input class="form-control" id="password" type="password" [formField]="form.fields.password" ngxFieldState>
+                <input class="form-control" id="password" type="password" [ngxField]="form.fields.password" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.password"/>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="confirm">Confirm password</label>
-                <input class="form-control" id="confirm" type="password" [formField]="form.fields.passwordConfirmation" ngxFieldState>
+                <input class="form-control" id="confirm" type="password" [ngxField]="form.fields.passwordConfirmation" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.passwordConfirmation"/>
             </div>
             <fieldset class="mb-3">
                 <legend>User</legend>
                 <label class="form-label" for="name">Name (anything except "Wrong")</label>
-                <input class="form-control" id="name" [formField]="form.fields.user.name" ngxFieldState>
+                <input class="form-control" id="name" [ngxField]="form.fields.user.name" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.user.name"/>
             </fieldset>
             <button type="submit" class="btn btn-primary">Submit</button>

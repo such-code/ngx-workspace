@@ -19,7 +19,7 @@ export function joinPath($segments: PathSegments): string {
 
 /** Converts `a[0].b` / `a[0][1]` to `a.0.b` / `a.0.1`. */
 export function normalizePath($path: string): string {
-    return $path.replace(/\[(\w+|\*)\]/g, '.$1').replace(/^\./, '');
+    return $path.replace(/\[(\w+|\*)]/g, '.$1').replace(/^\./, '');
 }
 
 export function isGlobPath($path: string): boolean {

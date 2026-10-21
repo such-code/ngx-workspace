@@ -1,11 +1,11 @@
 import {Component, ErrorHandler, signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 
-import {applyEach} from '@angular/forms/signals';
 import {
     applyRules,
+    applyEach,
     arrayOps,
-    FormField,
+    NgxField,
     MaxLengthRule,
     MinOrEqualRule,
     ngxForm,
@@ -13,16 +13,16 @@ import {
     normalizers,
     RequiredRule,
     ValidationIntl,
-} from '@such-code/ngx-forms';
+} from '@such-code/ngx-forms-validation';
 
 @Component({
     imports: [NgxForms],
     template: `
         <form [ngxForm]="form" (ngxSubmitted)="result = $event">
-            <input id="name" [formField]="form.fields.name" ngxFieldState>
+            <input id="name" [ngxField]="form.fields.name" ngxFieldState>
             <ngx-field-errors [field]="form.fields.name"/>
-            <input id="iban" [formField]="form.fields.iban" [ngxNormalize]="iban">
-            <input id="nick" [formField]="form.fields.nick" [ngxNormalize]="trim" ngxNormalizeOn="blur">
+            <input id="iban" [ngxField]="form.fields.iban" [ngxNormalize]="iban">
+            <input id="nick" [ngxField]="form.fields.nick" [ngxNormalize]="trim" ngxNormalizeOn="blur">
             <ngx-form-errors heading="Oops"/>
             <button type="submit">Save</button>
         </form>
@@ -110,7 +110,7 @@ describe('UI', () => {
         type(nick, '  me  ');
         await fixture.whenStable();
         expect(cmp.model().nick).toBe('  me  ');
-        nick.dispatchEvent(new Event('blur'));
+        nick.dispatchEvent(new Event('focusout'));
         await fixture.whenStable();
         expect(cmp.model().nick).toBe('me');
         expect(nick.value).toBe('me');
@@ -121,9 +121,9 @@ describe('UI', () => {
     imports: [NgxForms],
     template: `
         <form [ngxForm]="form">
-            @for (item of form.fields.lines; track item; let i = $index) {
+            @for (item of form.fields.lines; track item().value().id; let i = $index) {
                 <div class="row">
-                    <input class="sku" [formField]="item.sku">
+                    <input class="sku" [ngxField]="item.sku">
                     <ngx-field-errors [field]="item.sku"/>
                     <button type="button" class="remove" (click)="lines.remove(i)">×</button>
                 </div>
@@ -144,10 +144,10 @@ class TestArrayComponent {
     imports: [NgxForms],
     template: `
         <form [ngxForm]="form">
-            <label for="email">Email @if (form.isRequired(form.fields.email)) {<span class="mark">*</span>}</label>
-            <input id="email" [formField]="form.fields.email" ngxConstraints>
-            <input id="code" [formField]="form.fields.code" ngxConstraints>
-            <input id="age" type="number" [formField]="form.fields.age" ngxConstraints>
+            <label for="email">Email @if (form.fields.email().required()) {<span class="mark">*</span>}</label>
+            <input id="email" [ngxField]="form.fields.email">
+            <input id="code" [ngxField]="form.fields.code">
+            <input id="age" type="number" [ngxField]="form.fields.age">
         </form>
     `,
 })
@@ -157,7 +157,7 @@ class TestConstraintsComponent {
 }
 
 describe('UI constraints', () => {
-    it('mirrors late rules as required / aria-required and native limits', async () => {
+    it('reflects late rules as required / aria-required and native limits', async () => {
         const fixture = TestBed.createComponent(TestConstraintsComponent);
         const el: HTMLElement = fixture.nativeElement;
         const q = (s: string) => el.querySelector(s) as HTMLInputElement;
@@ -166,7 +166,6 @@ describe('UI constraints', () => {
         expect(q('#email').hasAttribute('required')).toBe(false);
         expect(q('#email').hasAttribute('aria-required')).toBe(false);
         expect(q('.mark')).toBeNull();
-        // From metadata: `[formField]` sets required, the directive adds aria-required.
         expect(q('#code').hasAttribute('required')).toBe(true);
         expect(q('#code').getAttribute('aria-required')).toBe('true');
 
@@ -209,7 +208,7 @@ describe('UI arrays', () => {
         expect(Array.from(el.querySelectorAll<HTMLInputElement>('.sku')).map($ => $.value)).toEqual(['A1', '']);
     });
 
-    it('re-exports FormField', () => {
-        expect(NgxForms).toContain(FormField);
+    it('includes NgxField', () => {
+        expect(NgxForms).toContain(NgxField);
     });
 });

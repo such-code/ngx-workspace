@@ -1,0 +1,21 @@
+{
+    "name": "@such-code/ngx-forms-validation",
+    "version": "22.0.0",
+    "license": "MIT",
+    "description": "Validation templates, server errors, submit handling and wizards for @such-code/ngx-forms.",
+    "author": "Erik Podrez<erya14@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/such-code/ngx-workspace"
+    },
+    "peerDependencies": {
+        "@angular/common": "^22.0.0",
+        "@angular/core": "^22.0.0",
+        "@such-code/ngx-forms": "^22.0.0",
+        "rxjs": "^7.4.0"
+    },
+    "dependencies": {
+        "tslib": "^2.3.0"
+    },
+    "sideEffects": false
+}

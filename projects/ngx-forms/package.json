@@ -1,17 +1,16 @@
 {
     "name": "@such-code/ngx-forms",
-    "version": "22.0.0-next.0",
+    "version": "22.0.0",
     "license": "MIT",
-    "description": "Validation templates, server errors, submit handling and wizards for Angular Signal Forms.",
+    "description": "Signal based forms for Angular: dynamic schemas, pushed errors with a lifecycle, stable array identity.",
     "author": "Erik Podrez<erya14@gmail.com>",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/such-code/ngx-workspace"
     },
     "peerDependencies": {
-        "@angular/common": "^22.0.0",
         "@angular/core": "^22.0.0",
-        "@angular/forms": "^22.0.0"
+        "rxjs": "^7.4.0"
     },
     "dependencies": {
         "tslib": "^2.3.0"

@@ -11,7 +11,7 @@ import {
     provideRuleTemplates,
     reaction,
     RequiredRule,
-} from '@such-code/ngx-forms';
+} from '@such-code/ngx-forms-validation';
 
 type Line = { id: number, sku: string, qty: number | null };
 type Company = { name: string, vat: string };
@@ -38,7 +38,7 @@ const line = (): Line => ({id: nextId++, sku: '', qty: 1});
         <h2>Dynamic structure</h2>
         <form [ngxForm]="form" [ngxFormAction]="save">
             <div class="mb-3">
-                <select class="form-select w-auto" [formField]="form.fields.type">
+                <select class="form-select w-auto" [ngxField]="form.fields.type">
                     <option value="person">Person</option>
                     <option value="business">Business</option>
                 </select>
@@ -46,17 +46,17 @@ const line = (): Line => ({id: nextId++, sku: '', qty: 1});
             @if (form.fields.company; as company) {
                 <fieldset class="border rounded p-3 mb-3">
                     <legend class="fs-6">Company (added to the model when "Business" is selected)</legend>
-                    <input class="form-control mb-1" placeholder="Name" [formField]="company.name" ngxFieldState>
+                    <input class="form-control mb-1" placeholder="Name" [ngxField]="company.name" ngxFieldState>
                     <ngx-field-errors [field]="company.name"/>
-                    <input class="form-control mb-1" placeholder="VAT" [formField]="company.vat" ngxFieldState>
+                    <input class="form-control mb-1" placeholder="VAT" [ngxField]="company.vat" ngxFieldState>
                     <ngx-field-errors [field]="company.vat"/>
                 </fieldset>
             }
             @for (item of form.fields.lines; track item; let i = $index) {
                 <div class="row g-2 mb-2">
-                    <div class="col"><input class="form-control" placeholder="SKU" [formField]="item.sku" ngxFieldState>
+                    <div class="col"><input class="form-control" placeholder="SKU" [ngxField]="item.sku" ngxFieldState>
                         <ngx-field-errors [field]="item.sku"/></div>
-                    <div class="col-3"><input class="form-control" type="number" [formField]="item.qty" ngxFieldState>
+                    <div class="col-3"><input class="form-control" type="number" [ngxField]="item.qty" ngxFieldState>
                         <ngx-field-errors [field]="item.qty"/></div>
                     <div class="col-auto">
                         <button type="button" class="btn btn-outline-secondary" (click)="lines.move(i, i - 1)" [disabled]="i === 0">↑</button>

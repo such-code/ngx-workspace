@@ -17,7 +17,7 @@ import {
     SizeRule,
     stripPathPrefix,
     ValidationIntl,
-} from '@such-code/ngx-forms';
+} from '@such-code/ngx-forms-validation';
 
 describe('core/path', () => {
     it('normalizes bracket paths and strips prefixes', () => {

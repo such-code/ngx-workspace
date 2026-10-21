@@ -10,6 +10,9 @@
     "paths": {
       "@such-code/ngx-forms": [
         "./projects/ngx-forms/src/public-api.ts"
+      ],
+      "@such-code/ngx-forms-validation": [
+        "./projects/ngx-forms-validation/src/public-api.ts"
       ]
     },
     "skipLibCheck": true,

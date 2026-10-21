@@ -3,8 +3,5 @@
     "dest": "../../dist/ngx-forms",
     "lib": {
         "entryFile": "src/public-api.ts"
-    },
-    "assets": [
-        "MIGRATION.md"
-    ]
+    }
 }

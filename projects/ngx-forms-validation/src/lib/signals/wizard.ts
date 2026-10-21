@@ -1,6 +1,6 @@
 import {computed, Signal, signal, untracked} from '@angular/core';
-import {FieldTree} from '@angular/forms/signals';
-import {NgxForm, NgxSubmitOptions, SubmitAction} from './form';
+import {FieldTree} from '@such-code/ngx-forms';
+import {NgxForm, NgxSubmitOptions, NgxSubmitAction} from './form';
 import {STEP} from './metadata';
 import {AnyField, walkFields} from './field-tree';
 
@@ -32,7 +32,7 @@ export interface Wizard<T> {
     goTo($id: string, $force?: boolean): boolean;
 
     /** Validates all active steps; on failure moves to the first invalid one, otherwise submits the form. */
-    submit($action?: SubmitAction<T>, $options?: NgxSubmitOptions<T>): Promise<boolean>;
+    submit($action?: NgxSubmitAction<T>, $options?: NgxSubmitOptions<T>): Promise<boolean>;
 }
 
 
@@ -135,7 +135,7 @@ export function wizard<T>($form: NgxForm<T>, $steps: ReadonlyArray<WizardStep<T>
             });
         },
 
-        async submit($action?: SubmitAction<T>, $options?: NgxSubmitOptions<T>): Promise<boolean> {
+        async submit($action?: NgxSubmitAction<T>, $options?: NgxSubmitOptions<T>): Promise<boolean> {
             const invalid = untracked(() => {
                 const active = steps();
                 active.forEach(touch);
@@ -153,9 +153,7 @@ export function wizard<T>($form: NgxForm<T>, $steps: ReadonlyArray<WizardStep<T>
 
     function focusFirst($step: WizardStep<T>): void {
         for (const field of fieldsOf($step)) {
-            const first = field().errorSummary()[0];
-            if (first) {
-                first.fieldTree().focusBoundControl();
+            if (field().invalid() && field().focus()) {
                 return;
             }
         }

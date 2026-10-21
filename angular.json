@@ -34,6 +34,37 @@
                 }
             }
         },
+        "ngx-forms-validation": {
+            "projectType": "library",
+            "root": "projects/ngx-forms-validation",
+            "sourceRoot": "projects/ngx-forms-validation/src",
+            "prefix": "ngx",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:ng-packagr",
+                    "options": {
+                        "project": "projects/ngx-forms-validation/ng-package.json"
+                    },
+                    "configurations": {
+                        "production": {
+                            "tsConfig": "projects/ngx-forms-validation/tsconfig.lib.prod.json"
+                        },
+                        "development": {
+                            "tsConfig": "projects/ngx-forms-validation/tsconfig.lib.json"
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "test": {
+                    "builder": "@angular/build:unit-test",
+                    "options": {
+                        "tsConfig": "projects/ngx-forms-validation/tsconfig.spec.json",
+                        "runner": "vitest",
+                        "buildTarget": "::development"
+                    }
+                }
+            }
+        },
         "playground": {
             "projectType": "application",
             "root": "playground",

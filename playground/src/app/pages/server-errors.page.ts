@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 
-import {applyRules, ngxForm, NgxForms, RequiredRule} from '@such-code/ngx-forms';
+import {applyRules, ngxForm, NgxForms, RequiredRule} from '@such-code/ngx-forms-validation';
 import {FakeApi} from '../fake-api';
 
 type Scenario = 'ok' | 'field' | 'constraint' | 'network' | 'generic';
@@ -9,19 +9,19 @@ type Scenario = 'ok' | 'field' | 'constraint' | 'network' | 'generic';
     imports: [NgxForms],
     template: `
         <h2>Server errors</h2>
-        <p class="text-body-secondary">The form is disabled while the request runs. Field errors clear when you change that field.
-            The constraint scenario makes age required with a minimum: the asterisk, <code>required</code> and <code>min</code>
-            attributes come from <code>ngxConstraints</code> and <code>form.isRequired()</code>.</p>
+        <p class="text-body-secondary">The controls are locked while the request runs (validation keeps running). Field errors clear
+            when you change that field. The constraint scenario makes age required with a minimum after the form exists: the
+            asterisk (<code>field().required()</code>) and the <code>required</code> / <code>min</code> attributes follow it.</p>
         <form [ngxForm]="form" [ngxFormAction]="save">
             <ngx-form-errors heading="Could not save"/>
             <div class="mb-3">
-                <label class="form-label" for="login">Login @if (form.isRequired(form.fields.login)) {<span class="text-danger">*</span>}</label>
-                <input class="form-control" id="login" [formField]="form.fields.login" ngxFieldState ngxConstraints>
+                <label class="form-label" for="login">Login @if (form.fields.login().required()) {<span class="text-danger">*</span>}</label>
+                <input class="form-control" id="login" [ngxField]="form.fields.login" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.login"/>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="age">Age @if (form.isRequired(form.fields.age)) {<span class="text-danger">*</span>}</label>
-                <input class="form-control" id="age" type="number" [formField]="form.fields.age" ngxFieldState ngxConstraints>
+                <label class="form-label" for="age">Age @if (form.fields.age().required()) {<span class="text-danger">*</span>}</label>
+                <input class="form-control" id="age" type="number" [ngxField]="form.fields.age" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.age"/>
             </div>
             <div class="mb-3">

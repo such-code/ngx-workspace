@@ -1,8 +1,9 @@
-import {Component, model, signal} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {JsonPipe} from '@angular/common';
-import {FormValueControl, transformedValue} from '@angular/forms/signals';
 import {
     applyRules,
+    injectFieldControl,
+    transformedValue,
     MinOrEqualRule,
     ngxForm,
     NgxForms,
@@ -10,17 +11,16 @@ import {
     PatternRule,
     reaction,
     RequiredRule,
-} from '@such-code/ngx-forms';
+} from '@such-code/ngx-forms-validation';
 
-/** Parse/format: shows "1 234,50", stores 1234.5. Parse errors are reported to the field by Signal Forms. */
+/** Parse/format: shows "1 234,50", stores 1234.5. Text that is not an amount becomes a parse error of the field. */
 @Component({
     selector: 'app-amount-input',
-    template: `<input class="form-control" inputmode="decimal" [value]="raw()" (input)="raw.set($any($event.target).value)" (blur)="touched.set(true)">`,
+    template: `<input class="form-control" inputmode="decimal" [value]="raw()" (input)="raw.set($any($event.target).value)" (blur)="control.touch()" [disabled]="control.locked()">`,
 })
-export class AmountInput implements FormValueControl<number | null> {
-    public readonly value = model.required<number | null>();
-    public readonly touched = model(false);
-    protected readonly raw = transformedValue(this.value, {
+export class AmountInput {
+    protected readonly control = injectFieldControl<number | null>();
+    protected readonly raw = transformedValue(this.control, {
         parse: ($: string) => {
             const text = $.replace(/\s/g, '').replace(',', '.');
             if (!text) {
@@ -45,29 +45,29 @@ const regions: Record<string, ReadonlyArray<string>> = {
         <form [ngxForm]="form" [ngxFormAction]="save">
             <div class="mb-3">
                 <label class="form-label" for="iban">IBAN (uppercased and grouped while typing)</label>
-                <input class="form-control" id="iban" [formField]="form.fields.iban" [ngxNormalize]="iban" ngxFieldState>
+                <input class="form-control" id="iban" [ngxField]="form.fields.iban" [ngxNormalize]="iban" ngxFieldState>
                 <ngx-field-errors [field]="form.fields.iban"/>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="nick">Nickname (trimmed on blur)</label>
-                <input class="form-control" id="nick" [formField]="form.fields.nick" [ngxNormalize]="trim" ngxNormalizeOn="blur">
+                <input class="form-control" id="nick" [ngxField]="form.fields.nick" [ngxNormalize]="trim" ngxNormalizeOn="blur">
             </div>
             <div class="mb-3">
                 <label class="form-label">Amount (parse/format)</label>
-                <app-amount-input [formField]="form.fields.amount"/>
+                <app-amount-input [ngxField]="form.fields.amount"/>
                 <ngx-field-errors [field]="form.fields.amount"/>
             </div>
             <div class="row g-2 mb-3">
                 <div class="col">
                     <label class="form-label" for="country">Country</label>
-                    <select class="form-select" id="country" [formField]="form.fields.country">
+                    <select class="form-select" id="country" [ngxField]="form.fields.country">
                         <option value="LV">Latvia</option>
                         <option value="EE">Estonia</option>
                     </select>
                 </div>
                 <div class="col">
                     <label class="form-label" for="region">Region (reset when the country changes)</label>
-                    <select class="form-select" id="region" [formField]="form.fields.region" ngxFieldState>
+                    <select class="form-select" id="region" [ngxField]="form.fields.region" ngxFieldState>
                         <option value="">—</option>
                         @for (r of regionsFor(); track r) {
                             <option [value]="r">{{ r }}</option>
